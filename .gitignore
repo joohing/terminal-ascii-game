@@ -1,5 +1,6 @@
 # Vim tags
 tags
 
-# Compiled stuff
-./zig-out/*
+# Compiled stuff & the cache for build stuff
+zig-out/*
+.zig-cache/*
