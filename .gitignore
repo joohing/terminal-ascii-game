@@ -1,0 +1,5 @@
+# Vim tags
+tags
+
+# Compiled stuff
+./zig-out/*
