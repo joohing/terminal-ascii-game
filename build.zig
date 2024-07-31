@@ -80,6 +80,10 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const module = b.addModule("helpers", .{ .root_source_file = .{ .path = "src/helpers/helpers.zig" } });
+    exe.root_module.addImport("helpers", module);
+    exe_unit_tests.root_module.addImport("helpers", module);
+    lib_unit_tests.root_module.addImport("helpers", module);
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
 
     // Similar to creating the run step earlier, this exposes a `test` step to
