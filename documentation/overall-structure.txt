@@ -1,0 +1,56 @@
+
+Game loop:
+    sleep_for_stable_framerate()
+    # updates
+    for entity in entities:
+        entity.update()
+    
+    # renders
+    render_ui(game_state)
+    for e in entities:
+        render(e.sprite_ptr, e.position.x, e.position.y)
+
+def render_ui(game_state):
+    Based on current game state, render some UI.
+    The UI probably needs to maintain some state (which menu item has been selected?) that
+    should not be stored in the general game state.
+
+def render(sprite_ptr, pos_x, pos_y):
+    The general render function that can render a sprite
+    This should render the sprite at the given position.
+    What is a sprite? A sprite should be the minimum rectangle that includes all pixels to be drawn.
+    For example consider this sprite:
+
+    \
+     \
+      O
+    
+    We compute the minimum rectangle including all pixels:
+    |---|
+    |\  |
+    | \ |
+    |  O|
+    |---|
+    This means we need a u8 buffer of length 3x3=9 to store the whole sprite.
+    Any pixels that are empty are simply transparent, and do not override the pixels that have already been written.
+
+    We can represent this using a Sprite struct:
+    const Sprite = struct {
+        sprite_buffer: []u8 // this is a slice of dynamic length. Can we somehow store this without the heap?
+        stride_length: u8,  // width of the rectangle shown above
+    }
+
+Storage of sprites:
+    Do a struct:
+    const Sprites = struct {
+        MONSTER_SPRITE: []u8,
+        PLAYER_SPRITE: []u8,
+        fn init(self) {
+            return Sprites(
+                MONSTER_SPRITE=load_sprite("monster_sprite.txt"),
+                PLAYER_SPRITE=load_sprite("player_sprite.txt")
+            );
+        }
+    }
+
+    'load_sprite' should do a heap allocation and store the sprite there. We need to do this because we dont know the size of it.
