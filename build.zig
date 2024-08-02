@@ -80,7 +80,10 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const module = b.addModule("helpers", .{ .root_source_file = .{ .path = "src/helpers/helpers.zig" } });
+    const module = b.addModule("helpers", .{ .root_source_file = .{ .src_path = .{
+        .owner = b,
+        .sub_path = "src/helpers/helpers.zig",
+    }} });
     exe.root_module.addImport("helpers", module);
     exe_unit_tests.root_module.addImport("helpers", module);
     lib_unit_tests.root_module.addImport("helpers", module);
