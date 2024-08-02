@@ -3,5 +3,11 @@ tags
 
 # Compiled stuff & the cache for build stuff
 zig-out/*
+<<<<<<< HEAD
 .zig-cache/*
 zig-cache/*
+||||||| 10283f6
+.zig-cache/*
+=======
+zig-cache/*
+>>>>>>> d2923d89860d3422fb52081d8bc41164e1f2501a
