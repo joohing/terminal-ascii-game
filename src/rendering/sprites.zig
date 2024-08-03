@@ -1,11 +1,11 @@
 const std = @import("std");
 
-const SpriteCollection = struct {
+pub const SpriteCollection = struct {
     MONSTER_SPRITE: Sprite,
 };
 
-const Sprite = struct {
-    data: *[]u8,
+pub const Sprite = struct {
+    data: []const u8,
     stride_length: u8,
 };
 

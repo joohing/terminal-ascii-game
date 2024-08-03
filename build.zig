@@ -66,33 +66,57 @@ pub fn build(b: *std.Build) void {
 
     // Creates a step for unit testing. This only builds the test executable
     // but does not run it.
-    const lib_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    // const lib_unit_tests = b.addTest(.{
+    //     .root_source_file = b.path("src/root.zig"),
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
 
-    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
+    // const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
+    const module_paths = [_][]const u8{ "src/main.zig", "src/rendering/rendering.zig", "src/helpers/helpers.zig" };
+    var modules = [_]*std.Build.Module{undefined} ** module_paths.len;
+    var module_names = [_][]const u8{undefined} ** module_paths.len;
 
-    const exe_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    const test_step = b.step("test", "Run unit tests");
+    for (module_paths, 0..) |module_path, index| {
+        var it = std.mem.split(u8, module_path, "/");
+        const file_name = last(&it);
+        const module_name = file_name[0 .. file_name.len - 4];
+        const module = b.addModule(module_name, .{ .root_source_file = .{ .path = module_path } });
+        modules[index] = module;
+        module_names[index] = module_name;
 
-    const module = b.addModule("helpers", .{ .root_source_file = .{ .src_path = .{
-        .owner = b,
-        .sub_path = "src/helpers/helpers.zig",
-    }} });
-    exe.root_module.addImport("helpers", module);
-    exe_unit_tests.root_module.addImport("helpers", module);
-    lib_unit_tests.root_module.addImport("helpers", module);
-    const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
+        std.debug.print("Discovered module with name {s}\n", .{module_name});
+        exe.root_module.addImport(module_name, module);
+    }
+    for (0..module_paths.len) |index| {
+        const unit_test_module = b.addTest(.{
+            .root_source_file = b.path(module_paths[index]),
+            .target = target,
+            .optimize = optimize,
+        });
+        for (0..module_paths.len) |inner_index| {
+            unit_test_module.root_module.addImport(module_names[inner_index], modules[inner_index]);
+        }
+        const run_unit_test_module = b.addRunArtifact(unit_test_module);
+        run_unit_test_module.step.name = module_names[index];
+        test_step.dependOn(&run_unit_test_module.step);
+    }
+
+    // lib_unit_tests.root_module.addImport("helpers", helpers_mod);
 
     // Similar to creating the run step earlier, this exposes a `test` step to
     // the `zig build --help` menu, providing a way for the user to request
     // running the unit tests.
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_lib_unit_tests.step);
-    test_step.dependOn(&run_exe_unit_tests.step);
+    // test_step.dependOn(&run_lib_unit_tests.step);
+    // test_step.dependOn(&lib_unit_tests.step);
+}
+
+fn last(iter: *std.mem.SplitIterator(u8, std.mem.DelimiterType.sequence)) []const u8 {
+    var prev_value: []const u8 = undefined;
+    while (iter.next()) |value| {
+        prev_value = value;
+    }
+
+    return prev_value;
 }
