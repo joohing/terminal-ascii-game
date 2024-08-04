@@ -3,4 +3,5 @@ tags
 
 # Compiled stuff & the cache for build stuff
 zig-out/*
+zig-cache/*
 .zig-cache/*

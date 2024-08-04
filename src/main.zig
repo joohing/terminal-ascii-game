@@ -1,6 +1,13 @@
 const std = @import("std");
+// pub const rendering = @import("rendering");
+// const rendering = @import("rendering");
+// const sprites = rendering.sprites;
+
+// const sprites = @import("rendering/sprites.zig");
+// const rendering_2 = @import("rendering/rendering.zig");
 
 pub fn main() !void {
+    // _ = try sprites.init_sprite_collection(std.heap.page_allocator);
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
     std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
 
@@ -17,6 +24,7 @@ pub fn main() !void {
 }
 
 test "simple test" {
+    // std.debug.print("asd", .{});
     var list = std.ArrayList(i32).init(std.testing.allocator);
     defer list.deinit(); // try commenting this out and see if zig detects the memory leak!
     try list.append(42);
