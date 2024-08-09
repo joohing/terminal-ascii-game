@@ -5,3 +5,5 @@ tags
 zig-out/*
 zig-cache/*
 .zig-cache/*
+.vscode/settings.json
+scripts/.DS_Store

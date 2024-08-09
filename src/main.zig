@@ -1,4 +1,6 @@
 const std = @import("std");
+// const s = @import("sprite_files");
+const rendering = @import("rendering");
 // pub const rendering = @import("rendering");
 // const rendering = @import("rendering");
 // const sprites = rendering.sprites;
@@ -21,11 +23,14 @@ pub fn main() !void {
     try stdout.print("Run `zig build test` to run the tests.\n", .{});
 
     try bw.flush(); // don't forget to flush!
+    var allocator = std.heap.page_allocator;
+    _ = try rendering.sprite_collection.load_sprite_collection(&allocator);
 }
 
-test "simple test" {
+test "bla test" {
     // std.debug.print("asd", .{});
     var list = std.ArrayList(i32).init(std.testing.allocator);
+
     defer list.deinit(); // try commenting this out and see if zig detects the memory leak!
     try list.append(42);
     try std.testing.expectEqual(@as(i32, 42), list.pop());
