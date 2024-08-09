@@ -28,7 +28,10 @@ def main():
     rendered_file = template.render(context)
 
     with open(SPRITE_COLLECTION_FILE, "w") as f:
+        print(f"Writing to file {SPRITE_COLLECTION_FILE}")
         f.write(rendered_file)
+    print("Running zig fmt on generated file..")
+    os.system("zig fmt src/rendering/sprite_collection.zig")
 
 
 def get_sprite_names() -> list[str]:
