@@ -168,20 +168,13 @@ pub fn build(b: *std.Build) !void {
         }
         const run_unit_test_module = b.addRunArtifact(unit_test_module);
         run_unit_test_module.step.name = module_names[index];
+        // NOTE: Upgrading to 0.13.0 BROKE this part! Now unit tests always run with cache. Use --summary all to verify what tests have actually run.
         if (!use_cache) {
             run_unit_test_module.has_side_effects = true;
         }
 
         test_step.dependOn(&run_unit_test_module.step);
     }
-
-    // lib_unit_tests.root_module.addImport("helpers", helpers_mod);
-
-    // Similar to creating the run step earlier, this exposes a `test` step to
-    // the `zig build --help` menu, providing a way for the user to request
-    // running the unit tests.
-    // test_step.dependOn(&run_lib_unit_tests.step);
-    // test_step.dependOn(&lib_unit_tests.step);
 }
 
 fn last(iter: *std.mem.SplitIterator(u8, std.mem.DelimiterType.sequence)) []const u8 {
