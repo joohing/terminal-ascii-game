@@ -100,42 +100,6 @@ pub fn build(b: *std.Build) !void {
     //     .optimize = optimize,
     // });
 
-    // load the sprite files!
-    var files = std.ArrayList([]const u8).init(b.allocator);
-    defer files.deinit();
-
-    var sf_options = std.Build.Step.Options.create(b);
-
-    // Add all files names in the src folder to `files`
-    var dir = try std.fs.cwd().openDir("assets/sprites", .{ .iterate = true });
-
-    var dir_it = dir.iterate();
-    while (try dir_it.next()) |file| {
-        if (file.kind != .file) {
-            continue;
-        }
-        const sprite_str = ".sprite";
-        std.debug.print("Testing file {s}", .{file.name});
-        std.debug.print("Testing file {s}", .{file.name[file.name.len - 7 ..]});
-        std.debug.print("Testing file {s}", .{sprite_str});
-        if (!std.mem.eql(
-            u8,
-            file.name[file.name.len - 7 ..],
-            sprite_str,
-        )) {
-            std.debug.print("Skipping file {s}", .{file.name});
-
-            continue;
-        }
-        std.debug.print("Adding sprite {s}", .{file.name});
-        try files.append(b.dupe(file.name));
-    }
-
-    // Add the file names as an option to the exe, making it available
-    // as a string array at comptime in main.zig
-    sf_options.addOption([]const []const u8, "sprite_files", files.items);
-    exe.root_module.addOptions("sprite_files", sf_options);
-
     // const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
     const module_paths = [_][]const u8{ "src/main.zig", "src/rendering/rendering.zig", "src/helpers/helpers.zig" };
     var modules = [_]*std.Build.Module{undefined} ** module_paths.len;
@@ -153,9 +117,6 @@ pub fn build(b: *std.Build) !void {
         // std.debug.print("Discovered module with name {s}\n", .{module_name});
         exe.root_module.addImport(module_name, module);
         // add special case here that allows the rendering module to import sprite_files:
-        if (std.mem.eql(u8, module_name, "rendering")) {
-            module.addOptions("sprite_files", sf_options);
-        }
     }
     for (0..module_paths.len) |index| {
         const unit_test_module = b.addTest(.{
