@@ -36,6 +36,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const use_cache = b.option(
+        bool,
+        "use_cache",
+        "If true, use no test cache",
+    ) orelse false;
+
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
     // step when running `zig build`).
@@ -86,7 +92,7 @@ pub fn build(b: *std.Build) void {
         modules[index] = module;
         module_names[index] = module_name;
 
-        std.debug.print("Discovered module with name {s}\n", .{module_name});
+        // std.debug.print("Discovered module with name {s}\n", .{module_name});
         exe.root_module.addImport(module_name, module);
     }
     for (0..module_paths.len) |index| {
@@ -100,6 +106,10 @@ pub fn build(b: *std.Build) void {
         }
         const run_unit_test_module = b.addRunArtifact(unit_test_module);
         run_unit_test_module.step.name = module_names[index];
+        if (!use_cache) {
+            run_unit_test_module.has_side_effects = true;
+        }
+
         test_step.dependOn(&run_unit_test_module.step);
     }
 
