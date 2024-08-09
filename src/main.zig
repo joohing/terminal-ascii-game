@@ -1,4 +1,7 @@
 const std = @import("std");
+// const s = @import("sprite_files");
+const sprites = @import("rendering").sprites;
+
 // pub const rendering = @import("rendering");
 // const rendering = @import("rendering");
 // const sprites = rendering.sprites;
@@ -21,6 +24,8 @@ pub fn main() !void {
     try stdout.print("Run `zig build test` to run the tests.\n", .{});
 
     try bw.flush(); // don't forget to flush!
+
+    _ = sprites.load_all_sprites();
 }
 
 test "simple test" {

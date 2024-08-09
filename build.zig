@@ -1,13 +1,35 @@
 const std = @import("std");
+const builtin = @import("builtin");
+const helpers = @import("src/helpers/helpers.zig");
 
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
-pub fn build(b: *std.Build) void {
+
+pub fn build(b: *std.Build) !void {
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
     // for restricting supported target set are available.
+    comptime {
+        const target_version = "0.13.0";
+        if (!std.mem.eql(u8, target_version, builtin.zig_version_string)) {
+            const your_version_msg = "Your Zig version is: ";
+            const target_version_msg = ". Unsupported Zig version. Please upgrade to ";
+            var msg: [helpers.DEST_BUFFER_SIZE]u8 = undefined;
+
+            std.mem.copyForwards(u8, &msg, your_version_msg);
+            std.mem.copyForwards(u8, msg[your_version_msg.len..], builtin.zig_version_string);
+            std.mem.copyForwards(u8, msg[your_version_msg.len + builtin.zig_version_string.len ..], target_version_msg);
+            std.mem.copyForwards(u8, msg[your_version_msg.len + builtin.zig_version_string.len + target_version_msg.len ..], target_version);
+
+            // helpers.concat_strs(your_version_msg, builtin.zig_version_string, &msg, 0);
+            // helpers.concat_strs(msg[0 .. your_version_msg.len + builtin.zig_version_string.len], target_version_msg, &msg, your_version_msg.len + builtin.zig_version_string.len);
+            // // std.mem.copyForwards(u8, &dest, msg);
+            // std.mem.copyForwards(u8, dest[msg.len..], builtin.zig_version_string);
+            @compileError(&msg);
+        }
+    }
     const target = b.standardTargetOptions(.{});
 
     // Standard optimization options allow the person running `zig build` to select
@@ -78,6 +100,42 @@ pub fn build(b: *std.Build) void {
     //     .optimize = optimize,
     // });
 
+    // load the sprite files!
+    var files = std.ArrayList([]const u8).init(b.allocator);
+    defer files.deinit();
+
+    var sf_options = std.Build.Step.Options.create(b);
+
+    // Add all files names in the src folder to `files`
+    var dir = try std.fs.cwd().openDir("assets/sprites", .{ .iterate = true });
+
+    var dir_it = dir.iterate();
+    while (try dir_it.next()) |file| {
+        if (file.kind != .file) {
+            continue;
+        }
+        const sprite_str = ".sprite";
+        std.debug.print("Testing file {s}", .{file.name});
+        std.debug.print("Testing file {s}", .{file.name[file.name.len - 7 ..]});
+        std.debug.print("Testing file {s}", .{sprite_str});
+        if (!std.mem.eql(
+            u8,
+            file.name[file.name.len - 7 ..],
+            sprite_str,
+        )) {
+            std.debug.print("Skipping file {s}", .{file.name});
+
+            continue;
+        }
+        std.debug.print("Adding sprite {s}", .{file.name});
+        try files.append(b.dupe(file.name));
+    }
+
+    // Add the file names as an option to the exe, making it available
+    // as a string array at comptime in main.zig
+    sf_options.addOption([]const []const u8, "sprite_files", files.items);
+    exe.root_module.addOptions("sprite_files", sf_options);
+
     // const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
     const module_paths = [_][]const u8{ "src/main.zig", "src/rendering/rendering.zig", "src/helpers/helpers.zig" };
     var modules = [_]*std.Build.Module{undefined} ** module_paths.len;
@@ -88,12 +146,16 @@ pub fn build(b: *std.Build) void {
         var it = std.mem.split(u8, module_path, "/");
         const file_name = last(&it);
         const module_name = file_name[0 .. file_name.len - 4];
-        const module = b.addModule(module_name, .{ .root_source_file = .{ .path = module_path } });
+        const module = b.addModule(module_name, .{ .root_source_file = .{ .src_path = .{ .owner = b, .sub_path = module_path } } });
         modules[index] = module;
         module_names[index] = module_name;
 
         // std.debug.print("Discovered module with name {s}\n", .{module_name});
         exe.root_module.addImport(module_name, module);
+        // add special case here that allows the rendering module to import sprite_files:
+        if (std.mem.eql(u8, module_name, "rendering")) {
+            module.addOptions("sprite_files", sf_options);
+        }
     }
     for (0..module_paths.len) |index| {
         const unit_test_module = b.addTest(.{
