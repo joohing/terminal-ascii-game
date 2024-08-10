@@ -101,7 +101,11 @@ pub fn build(b: *std.Build) !void {
     // });
 
     // const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
-    const module_paths = [_][]const u8{ "src/main.zig", "src/rendering/rendering.zig", "src/helpers/helpers.zig" };
+    const module_paths = [_][]const u8{
+        "src/helpers/helpers.zig",
+        "src/rendering/rendering.zig",
+        "src/main.zig",
+    };
     var modules = [_]*std.Build.Module{undefined} ** module_paths.len;
     var module_names = [_][]const u8{undefined} ** module_paths.len;
 
@@ -118,6 +122,7 @@ pub fn build(b: *std.Build) !void {
         exe.root_module.addImport(module_name, module);
         // add special case here that allows the rendering module to import sprite_files:
     }
+
     for (0..module_paths.len) |index| {
         const unit_test_module = b.addTest(.{
             .root_source_file = b.path(module_paths[index]),

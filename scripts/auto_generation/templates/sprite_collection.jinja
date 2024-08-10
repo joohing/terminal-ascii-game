@@ -13,9 +13,12 @@ pub const SpriteCollection = struct {{'{'}}
 pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {{'{'}}{% for sprite_name in sprite_names %}
     const {{sprite_name}}_file = try std.fs.cwd().openFile("assets/sprites/{{sprite_name}}.sprite", .{});
     const {{sprite_name}}_file_size: u64 = (try {{sprite_name}}_file.stat()).size;
-    const {{sprite_name}}_content = try allocator.alloc(u8, @intCast({{sprite_name}}_file_size));
+    var {{sprite_name}}_content = try allocator.alloc(u8, @intCast({{sprite_name}}_file_size));
     _ = try {{sprite_name}}_file.read({{sprite_name}}_content);
     const {{sprite_name}}_stride = find_first_newline({{sprite_name}}_content);
+    const {{sprite_name}}_newline_count = std.mem.replace(u8, {{sprite_name}}_content, "\n", "", {{sprite_name}}_content);
+    {{sprite_name}}_content = {{sprite_name}}_content[0 .. {{sprite_name}}_content.len - {{sprite_name}}_newline_count];
+
     {% endfor %}
 
 

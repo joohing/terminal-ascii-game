@@ -1,6 +1,8 @@
 const std = @import("std");
 // const s = @import("sprite_files");
 const rendering = @import("rendering");
+const helpers = @import("helpers");
+
 // pub const rendering = @import("rendering");
 // const rendering = @import("rendering");
 // const sprites = rendering.sprites;
@@ -9,22 +11,23 @@ const rendering = @import("rendering");
 // const rendering_2 = @import("rendering/rendering.zig");
 
 pub fn main() !void {
-    // _ = try sprites.init_sprite_collection(std.heap.page_allocator);
-    // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
-
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
-
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
-
-    try bw.flush(); // don't forget to flush!
     var allocator = std.heap.page_allocator;
     _ = try rendering.sprite_collection.load_sprite_collection(&allocator);
+    var buffer: [helpers.constants.WINDOW_WIDTH * helpers.constants.WINDOW_HEIGHT]u8 = undefined;
+    // const str = ;
+
+    std.mem.copyForwards(u8, &buffer, "iter: ");
+    const collection = try rendering.sprite_collection.load_sprite_collection(&allocator);
+    const sprite = collection.TEST;
+    var iter: u32 = 0;
+    var game_display = rendering.display.GameDisplay{};
+    while (true) {
+        iter += 1;
+        rendering.render.render_random(&buffer);
+        rendering.render.render(&sprite, 0, 0, helpers.constants.WINDOW_WIDTH, &buffer);
+        try game_display.display_buffer(&buffer);
+        std.time.sleep(500000000);
+    }
 }
 
 test "bla test" {
@@ -34,4 +37,16 @@ test "bla test" {
     defer list.deinit(); // try commenting this out and see if zig detects the memory leak!
     try list.append(42);
     try std.testing.expectEqual(@as(i32, 42), list.pop());
+}
+
+pub fn show_random_numbers() !void {
+    var buffer: [helpers.constants.WINDOW_WIDTH * helpers.constants.WINDOW_HEIGHT]u8 = undefined;
+
+    var iter: u32 = 0;
+    while (true) {
+        iter += 1;
+        rendering.render.render_random(&buffer);
+        try rendering.display.display_buffer(&buffer);
+        std.time.sleep(500000000);
+    }
 }

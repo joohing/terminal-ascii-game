@@ -14,33 +14,43 @@ pub const SpriteCollection = struct {
 pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     const TEST_file = try std.fs.cwd().openFile("assets/sprites/TEST.sprite", .{});
     const TEST_file_size: u64 = (try TEST_file.stat()).size;
-    const TEST_content = try allocator.alloc(u8, @intCast(TEST_file_size));
+    var TEST_content = try allocator.alloc(u8, @intCast(TEST_file_size));
     _ = try TEST_file.read(TEST_content);
     const TEST_stride = find_first_newline(TEST_content);
+    const TEST_newline_count = std.mem.replace(u8, TEST_content, "\n", "", TEST_content);
+    TEST_content = TEST_content[0 .. TEST_content.len - TEST_newline_count];
 
     const jonathan_file = try std.fs.cwd().openFile("assets/sprites/jonathan.sprite", .{});
     const jonathan_file_size: u64 = (try jonathan_file.stat()).size;
-    const jonathan_content = try allocator.alloc(u8, @intCast(jonathan_file_size));
+    var jonathan_content = try allocator.alloc(u8, @intCast(jonathan_file_size));
     _ = try jonathan_file.read(jonathan_content);
     const jonathan_stride = find_first_newline(jonathan_content);
+    const jonathan_newline_count = std.mem.replace(u8, jonathan_content, "\n", "", jonathan_content);
+    jonathan_content = jonathan_content[0 .. jonathan_content.len - jonathan_newline_count];
 
     const MONSTER_1_file = try std.fs.cwd().openFile("assets/sprites/MONSTER_1.sprite", .{});
     const MONSTER_1_file_size: u64 = (try MONSTER_1_file.stat()).size;
-    const MONSTER_1_content = try allocator.alloc(u8, @intCast(MONSTER_1_file_size));
+    var MONSTER_1_content = try allocator.alloc(u8, @intCast(MONSTER_1_file_size));
     _ = try MONSTER_1_file.read(MONSTER_1_content);
     const MONSTER_1_stride = find_first_newline(MONSTER_1_content);
+    const MONSTER_1_newline_count = std.mem.replace(u8, MONSTER_1_content, "\n", "", MONSTER_1_content);
+    MONSTER_1_content = MONSTER_1_content[0 .. MONSTER_1_content.len - MONSTER_1_newline_count];
 
     const er_file = try std.fs.cwd().openFile("assets/sprites/er.sprite", .{});
     const er_file_size: u64 = (try er_file.stat()).size;
-    const er_content = try allocator.alloc(u8, @intCast(er_file_size));
+    var er_content = try allocator.alloc(u8, @intCast(er_file_size));
     _ = try er_file.read(er_content);
     const er_stride = find_first_newline(er_content);
+    const er_newline_count = std.mem.replace(u8, er_content, "\n", "", er_content);
+    er_content = er_content[0 .. er_content.len - er_newline_count];
 
     const dum_file = try std.fs.cwd().openFile("assets/sprites/dum.sprite", .{});
     const dum_file_size: u64 = (try dum_file.stat()).size;
-    const dum_content = try allocator.alloc(u8, @intCast(dum_file_size));
+    var dum_content = try allocator.alloc(u8, @intCast(dum_file_size));
     _ = try dum_file.read(dum_content);
     const dum_stride = find_first_newline(dum_content);
+    const dum_newline_count = std.mem.replace(u8, dum_content, "\n", "", dum_content);
+    dum_content = dum_content[0 .. dum_content.len - dum_newline_count];
 
     return SpriteCollection{
         .TEST = sprites.Sprite{
