@@ -2,7 +2,7 @@ const std = @import("std");
 const sprites = @import("sprites.zig");
 // const constants = @import("helpers").constants;
 
-pub fn render(sprite: *const sprites.Sprite, x: i8, y: i8, window_width: u8, render_buffer: []u8) void {
+pub fn render(sprite: *const sprites.Sprite, x: i16, y: i16, window_width: u8, render_buffer: []u8) void {
     const window_height = render_buffer.len / window_width;
     for (sprite.data, 0..) |pixel, index| {
         if (pixel == 32) {

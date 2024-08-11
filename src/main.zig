@@ -11,22 +11,65 @@ const helpers = @import("helpers");
 // const rendering_2 = @import("rendering/rendering.zig");
 
 pub fn main() !void {
+    // const old_mode = try std.posix.tcgetattr(std.posix.STDIN_FILENO);
+    // defer std.posix.tcsetattr(std.posix.STDIN_FILENO, .FLUSH, old_mode) catch {};
+
+    // var raw_mode = old_mode;
+    // raw_mode.lflag.ECHO = false;
+    // raw_mode.lflag.ICANON = false;
+    // try std.posix.tcsetattr(std.posix.STDIN_FILENO, .FLUSH, raw_mode);
+
+    // var buf: [1]u8 = undefined;
+    // while (true) {
+    //     _ = try std.posix.read(std.posix.STDIN_FILENO, &buf);
+    //     if (buf[0] == 'q') {
+    //         _ = try std.posix.write(std.posix.STDOUT_FILENO, "hejsa");
+    //         return;
+    //     }
+    // }
+
     var allocator = std.heap.page_allocator;
-    _ = try rendering.sprite_collection.load_sprite_collection(&allocator);
     var buffer: [helpers.constants.WINDOW_WIDTH * helpers.constants.WINDOW_HEIGHT]u8 = undefined;
     // const str = ;
 
-    std.mem.copyForwards(u8, &buffer, "iter: ");
     const collection = try rendering.sprite_collection.load_sprite_collection(&allocator);
     const sprite = collection.TEST;
     var iter: u32 = 0;
-    var game_display = rendering.display.GameDisplay{};
+    var game_display = try rendering.display.GameDisplay.init();
+    try game_display.start_stdin_reading_thread();
+    // var buf: [1]u8 = undefined;
+    var sprite_x: i16 = 0;
+    var sprite_y: i16 = 0;
     while (true) {
         iter += 1;
+        // std.io.getStdIn().(buffer: []u8, offset: u64);
+        // _ = try std.posix.read(std.posix.STDIN_FILENO, &buf);
+        // if (buf[0] == 'q') {
+        //     _ = try std.posix.write(std.posix.STDOUT_FILENO, "hejsa");
+        //     return;
+        // }
+        while (game_display.stdin_buffer.ptr > 0) {
+            game_display.stdin_buffer.mutex.lock();
+            game_display.stdin_buffer.ptr -= 1;
+            const key = game_display.stdin_buffer.buf[game_display.stdin_buffer.ptr];
+            if (key == 'w') {
+                sprite_y -= 1;
+            }
+            if (key == 's') {
+                sprite_y += 1;
+            }
+            if (key == 'd') {
+                sprite_x += 1;
+            }
+            if (key == 'a') {
+                sprite_x -= 1;
+            }
+            game_display.stdin_buffer.mutex.unlock();
+        }
         rendering.render.render_random(&buffer);
-        rendering.render.render(&sprite, 0, 0, helpers.constants.WINDOW_WIDTH, &buffer);
+        rendering.render.render(&sprite, sprite_x, sprite_y, helpers.constants.WINDOW_WIDTH, &buffer);
         try game_display.display_buffer(&buffer);
-        std.time.sleep(500000000);
+        std.time.sleep(50000000);
     }
 }
 

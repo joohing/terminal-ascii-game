@@ -102,9 +102,9 @@ pub fn build(b: *std.Build) !void {
 
     // const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
     const module_paths = [_][]const u8{
-        "src/helpers/helpers.zig",
-        "src/rendering/rendering.zig",
         "src/main.zig",
+        "src/rendering/rendering.zig",
+        "src/helpers/helpers.zig",
     };
     var modules = [_]*std.Build.Module{undefined} ** module_paths.len;
     var module_names = [_][]const u8{undefined} ** module_paths.len;
