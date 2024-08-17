@@ -43,9 +43,21 @@ pub fn main() !void {
     // var buf: [1]u8 = undefined;
     var sprite_x: i16 = 0;
     var sprite_y: i16 = 0;
-    var input_buffer: [32]u32 = std.mem.zeroes([32]u32);
+    const time_per_frame: i128 = @intFromFloat(1.0 / @as(f32, @floatFromInt(helpers.constants.FPS)) * @as(f32, 1000000000));
+
+    var prev_frame = std.time.nanoTimestamp();
+    var next_frame = prev_frame + time_per_frame;
     gameloop: while (true) {
         iter += 1;
+
+        const sleep_time = next_frame - prev_frame;
+
+        std.time.sleep(@intCast(sleep_time));
+        const nanos_elapsed = std.time.nanoTimestamp() - prev_frame;
+        const millis_elapsed: f32 = @as(f32, @floatFromInt(nanos_elapsed)) / @as(f32, @floatFromInt(1000000));
+        std.debug.print("Frametime: {}ms\n", .{millis_elapsed});
+        prev_frame = std.time.nanoTimestamp();
+        next_frame = prev_frame + time_per_frame;
         // std.io.getStdIn().(buffer: []u8, offset: u64);
         // _ = try std.posix.read(std.posix.STDIN_FILENO, &buf);
         // if (buf[0] == 'q') {
@@ -70,33 +82,33 @@ pub fn main() !void {
         //     }
         //     game_display.stdin_buffer.mutex.unlock();
         // }
-        rendering.render.render_random(&buffer);
+        rendering.render.render_0(&buffer);
         rendering.render.render(&sprite, sprite_x, sprite_y, helpers.constants.WINDOW_WIDTH, &buffer);
         try game_display.display_buffer(&buffer);
 
-        const key_pressed_count = rendering.display.read_events(&input_buffer) catch {
+        const keys_pressed = game_display.read_events() catch {
             std.debug.print("Quit button was pressed. Quitting now", .{});
             rendering.display.c.SDL_Quit();
             break :gameloop;
         };
         std.debug.print("{}, {}", .{ sprite_x, sprite_y });
-        if (key_pressed_count == 1) {
-            std.debug.print("Found button press: {any}\n", .{input_buffer[0]});
-            std.debug.print("Scancode s: {}\n", .{@as(u32, c.SDL_SCANCODE_S)});
-            if (input_buffer[0] == @as(u32, @intCast(c.SDL_SCANCODE_S))) {
-                sprite_y += 1;
-            }
-            if (input_buffer[0] == @as(u8, @intCast(c.SDL_SCANCODE_W))) {
-                sprite_y -= 1;
-            }
-            if (input_buffer[0] == @as(u8, @intCast(c.SDL_SCANCODE_D))) {
-                sprite_x += 1;
-            }
-            if (input_buffer[0] == @as(u8, @intCast(c.SDL_SCANCODE_A))) {
-                sprite_x -= 1;
-            }
+        // if (key_pressed_count == 1) {
+        // std.debug.print("Found button press: {any}\n", .{input_buffer[0]});
+        // std.debug.print("Scancode s: {}\n", .{@as(u32, c.SDL_SCANCODE_S)});
+        if (keys_pressed[c.SDL_SCANCODE_S]) {
+            sprite_y += 1;
         }
-        std.debug.print("[Iter: {}]Keys pressed: {any}\n", .{ iter, input_buffer[0..key_pressed_count] });
+        if (keys_pressed[c.SDL_SCANCODE_W]) {
+            sprite_y -= 1;
+        }
+        if (keys_pressed[c.SDL_SCANCODE_D]) {
+            sprite_x += 1;
+        }
+        if (keys_pressed[c.SDL_SCANCODE_A]) {
+            sprite_x -= 1;
+        }
+        // }
+        // std.debug.print("[Iter: {}]Keys pressed: {any}\n", .{ iter, input_buffer[0..key_pressed_count] });
         // std.time.sleep(50000000);
     }
 }

@@ -18,7 +18,11 @@ pub fn render(sprite: *const sprites.Sprite, x: i16, y: i16, window_width: u8, r
         }
     }
 }
-
+pub fn render_0(render_buffer: []u8) void {
+    for (render_buffer) |*pixel| {
+        pixel.* = 32;
+    }
+}
 pub fn render_random(render_buffer: []u8) void {
     const timestamp = std.time.nanoTimestamp();
     var rand = std.rand.Xoroshiro128.init(@intCast(timestamp));
