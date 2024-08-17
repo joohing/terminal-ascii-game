@@ -1,13 +1,35 @@
 const std = @import("std");
+const builtin = @import("builtin");
+const helpers = @import("src/helpers/helpers.zig");
 
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
-pub fn build(b: *std.Build) void {
+
+pub fn build(b: *std.Build) !void {
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
     // for restricting supported target set are available.
+    comptime {
+        const target_version = "0.13.0";
+        if (!std.mem.eql(u8, target_version, builtin.zig_version_string)) {
+            const your_version_msg = "Your Zig version is: ";
+            const target_version_msg = ". Unsupported Zig version. Please upgrade to ";
+            var msg: [helpers.DEST_BUFFER_SIZE]u8 = undefined;
+
+            std.mem.copyForwards(u8, &msg, your_version_msg);
+            std.mem.copyForwards(u8, msg[your_version_msg.len..], builtin.zig_version_string);
+            std.mem.copyForwards(u8, msg[your_version_msg.len + builtin.zig_version_string.len ..], target_version_msg);
+            std.mem.copyForwards(u8, msg[your_version_msg.len + builtin.zig_version_string.len + target_version_msg.len ..], target_version);
+
+            // helpers.concat_strs(your_version_msg, builtin.zig_version_string, &msg, 0);
+            // helpers.concat_strs(msg[0 .. your_version_msg.len + builtin.zig_version_string.len], target_version_msg, &msg, your_version_msg.len + builtin.zig_version_string.len);
+            // // std.mem.copyForwards(u8, &dest, msg);
+            // std.mem.copyForwards(u8, dest[msg.len..], builtin.zig_version_string);
+            @compileError(&msg);
+        }
+    }
     const target = b.standardTargetOptions(.{});
 
     // Standard optimization options allow the person running `zig build` to select
@@ -35,6 +57,16 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+
+    // const sdl_dep = b.dependency("SDL", .{
+    //     .optimize = .ReleaseFast,
+    //     .target = target,
+    // });
+
+    // const sdl_artifact = sdl_dep.artifact("SDL2");
+
+    exe.linkSystemLibrary("SDL2");
+    exe.linkSystemLibrary("SDL2_ttf");
 
     const use_cache = b.option(
         bool,
@@ -79,7 +111,11 @@ pub fn build(b: *std.Build) void {
     // });
 
     // const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
-    const module_paths = [_][]const u8{ "src/main.zig", "src/rendering/rendering.zig", "src/helpers/helpers.zig" };
+    const module_paths = [_][]const u8{
+        "src/main.zig",
+        "src/rendering/rendering.zig",
+        "src/helpers/helpers.zig",
+    };
     var modules = [_]*std.Build.Module{undefined} ** module_paths.len;
     var module_names = [_][]const u8{undefined} ** module_paths.len;
 
@@ -88,13 +124,18 @@ pub fn build(b: *std.Build) void {
         var it = std.mem.split(u8, module_path, "/");
         const file_name = last(&it);
         const module_name = file_name[0 .. file_name.len - 4];
-        const module = b.addModule(module_name, .{ .root_source_file = .{ .path = module_path } });
+        const module = b.addModule(module_name, .{ .target = target, .root_source_file = .{ .src_path = .{ .owner = b, .sub_path = module_path } } });
         modules[index] = module;
+
         module_names[index] = module_name;
 
         // std.debug.print("Discovered module with name {s}\n", .{module_name});
         exe.root_module.addImport(module_name, module);
     }
+    modules[1].linkSystemLibrary("SDL2", .{});
+    // modules[1].linkSystemLibrary("SDL2_ttf", .{});
+
+    modules[1].addImport(module_names[2], modules[2]);
     for (0..module_paths.len) |index| {
         const unit_test_module = b.addTest(.{
             .root_source_file = b.path(module_paths[index]),
@@ -106,20 +147,13 @@ pub fn build(b: *std.Build) void {
         }
         const run_unit_test_module = b.addRunArtifact(unit_test_module);
         run_unit_test_module.step.name = module_names[index];
+        // NOTE: Upgrading to 0.13.0 BROKE this part! Now unit tests always run with cache. Use --summary all to verify what tests have actually run.
         if (!use_cache) {
             run_unit_test_module.has_side_effects = true;
         }
 
         test_step.dependOn(&run_unit_test_module.step);
     }
-
-    // lib_unit_tests.root_module.addImport("helpers", helpers_mod);
-
-    // Similar to creating the run step earlier, this exposes a `test` step to
-    // the `zig build --help` menu, providing a way for the user to request
-    // running the unit tests.
-    // test_step.dependOn(&run_lib_unit_tests.step);
-    // test_step.dependOn(&lib_unit_tests.step);
 }
 
 fn last(iter: *std.mem.SplitIterator(u8, std.mem.DelimiterType.sequence)) []const u8 {
