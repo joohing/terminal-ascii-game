@@ -58,6 +58,16 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
 
+    // const sdl_dep = b.dependency("SDL", .{
+    //     .optimize = .ReleaseFast,
+    //     .target = target,
+    // });
+
+    // const sdl_artifact = sdl_dep.artifact("SDL2");
+
+    exe.linkSystemLibrary("SDL2");
+    exe.linkSystemLibrary("SDL2_ttf");
+
     const use_cache = b.option(
         bool,
         "use_cache",
@@ -114,15 +124,18 @@ pub fn build(b: *std.Build) !void {
         var it = std.mem.split(u8, module_path, "/");
         const file_name = last(&it);
         const module_name = file_name[0 .. file_name.len - 4];
-        const module = b.addModule(module_name, .{ .root_source_file = .{ .src_path = .{ .owner = b, .sub_path = module_path } } });
+        const module = b.addModule(module_name, .{ .target = target, .root_source_file = .{ .src_path = .{ .owner = b, .sub_path = module_path } } });
         modules[index] = module;
+
         module_names[index] = module_name;
 
         // std.debug.print("Discovered module with name {s}\n", .{module_name});
         exe.root_module.addImport(module_name, module);
-        // add special case here that allows the rendering module to import sprite_files:
     }
+    modules[1].linkSystemLibrary("SDL2", .{});
+    // modules[1].linkSystemLibrary("SDL2_ttf", .{});
 
+    modules[1].addImport(module_names[2], modules[2]);
     for (0..module_paths.len) |index| {
         const unit_test_module = b.addTest(.{
             .root_source_file = b.path(module_paths[index]),
