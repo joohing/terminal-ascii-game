@@ -66,6 +66,7 @@ pub fn build(b: *std.Build) !void {
     // const sdl_artifact = sdl_dep.artifact("SDL2");
     exe.addIncludePath(.{ .src_path = .{ .owner = b, .sub_path = "/opt/homebrew/include/SDL2" } });
     exe.addLibraryPath(.{ .src_path = .{ .owner = b, .sub_path = "/opt/homebrew/lib/" } });
+    exe.addIncludePath(.{ .src_path = .{ .owner = b, .sub_path = "/opt/homebrew/include" } });
     exe.linkSystemLibrary("SDL2");
     exe.linkSystemLibrary("SDL2_ttf");
 
@@ -134,6 +135,14 @@ pub fn build(b: *std.Build) !void {
         exe.root_module.addImport(module_name, module);
         module.linkSystemLibrary("SDL2", .{});
     }
+    modules[1].linkSystemLibrary("SDL2", .{});
+    // modules[1].linkSystemLibrary("SDL2_ttf", .{});
+
+    modules[1].addLibraryPath(.{ .src_path = .{ .owner = b, .sub_path = "/opt/homebrew/lib/" } });
+    modules[1].addIncludePath(.{ .src_path = .{ .owner = b, .sub_path = "/opt/homebrew/include" } });
+    modules[1].linkSystemLibrary("SDL2", .{});
+    // modules[1].linkSystemLibrary("SDL2_ttf", .{});
+
     modules[1].addImport(module_names[2], modules[2]);
     modules[3].addImport(module_names[1], modules[1]);
 
