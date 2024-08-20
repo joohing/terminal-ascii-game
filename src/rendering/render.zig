@@ -1,23 +1,28 @@
 const std = @import("std");
 const sprites = @import("sprites.zig");
+const constants = @import("helpers").constants;
 // const constants = @import("helpers").constants;
 
-pub fn render(sprite: *const sprites.Sprite, x: i16, y: i16, window_width: u8, render_buffer: []u8) void {
+pub fn render(sprite: *const sprites.Sprite, x: i32, y: i32, window_width: u8, render_buffer: []u8) void {
+    std.debug.print("Starting render {}...\n", .{sprite});
     const window_height = render_buffer.len / window_width;
     for (sprite.data, 0..) |pixel, index| {
         if (pixel == 32) {
             continue;
         }
 
-        const this_x = @as(i16, @intCast(index % sprite.stride_length)) + x;
-        const this_y = @as(i16, @intCast(index / sprite.stride_length)) + y;
+        const this_x = @as(i32, @intCast(index % sprite.stride_length)) + x;
+        const this_y = @as(i32, @intCast(index / sprite.stride_length)) + y;
 
-        const buffer_index = this_x + this_y * @as(i16, @intCast(window_width));
+        const buffer_index = this_x + this_y * @as(i32, @intCast(window_width));
         if (this_x >= 0 and this_y >= 0 and this_x < window_width and this_y < window_height) {
             render_buffer[@intCast(buffer_index)] = pixel;
         }
     }
 }
+// pub fn render_entity(entity: *Entity, render_buffer: []u8) void {
+//     render(entity.get_curr_sprite(), entity.x, entity.y, constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT, render_buffer);
+// }
 pub fn render_0(render_buffer: []u8) void {
     for (render_buffer) |*pixel| {
         pixel.* = 32;

@@ -6,7 +6,9 @@ const std = @import("std");
 // const s = @import("sprite_files");
 const rendering = @import("rendering");
 const helpers = @import("helpers");
-
+const Entity = @import("entities").entity.Entity;
+const PlayerEntity = @import("entities").player_entity.PlayerEntity;
+const EnemyEntity = @import("entities").enemy_entity.EnemyEntity;
 // pub const rendering = @import("rendering");
 // const rendering = @import("rendering");
 // const sprites = rendering.sprites;
@@ -36,17 +38,25 @@ pub fn main() !void {
     var buffer: [helpers.constants.WINDOW_WIDTH * helpers.constants.WINDOW_HEIGHT]u8 = undefined;
 
     const collection = try rendering.sprite_collection.load_sprite_collection(&allocator);
-    const sprite = collection.TEST;
     var iter: u32 = 0;
     var game_display = try rendering.display.GameDisplay.init();
 
-    // var buf: [1]u8 = undefined;
-    var sprite_x: i16 = 0;
-    var sprite_y: i16 = 0;
     const time_per_frame: i128 = @intFromFloat(1.0 / @as(f32, @floatFromInt(helpers.constants.FPS)) * @as(f32, 1000000000));
 
     var prev_frame = std.time.nanoTimestamp();
     var next_frame = prev_frame + time_per_frame;
+    var player_entity = PlayerEntity.init(10, 20, &collection);
+    var enemy_entity = EnemyEntity.init(20, 20, &collection);
+    var entities: [256]*Entity = .{undefined} ** 256;
+    entities[0] = &player_entity.entity;
+    entities[1] = &enemy_entity.entity;
+    const player_address = @intFromPtr(&player_entity);
+    const entity_address = @intFromPtr(&player_entity.entity);
+
+    const last_entity_ptr: u32 = 2;
+    std.debug.print("\nPlayer address: {}.\nPlayer: {}\n", .{ player_address, player_entity });
+    std.debug.print("Entity address: {}\n.", .{entity_address});
+
     gameloop: while (true) {
         iter += 1;
 
@@ -54,62 +64,31 @@ pub fn main() !void {
 
         std.time.sleep(@intCast(sleep_time));
         const nanos_elapsed = std.time.nanoTimestamp() - prev_frame;
-        const millis_elapsed: f32 = @as(f32, @floatFromInt(nanos_elapsed)) / @as(f32, @floatFromInt(1000000));
+        const millis_elapsed: i32 = @intFromFloat(@as(f32, @floatFromInt(nanos_elapsed)) / @as(f32, @floatFromInt(1000000)));
         std.debug.print("Frametime: {}ms\n", .{millis_elapsed});
         prev_frame = std.time.nanoTimestamp();
         next_frame = prev_frame + time_per_frame;
-        // std.io.getStdIn().(buffer: []u8, offset: u64);
-        // _ = try std.posix.read(std.posix.STDIN_FILENO, &buf);
-        // if (buf[0] == 'q') {
-        //     _ = try std.posix.write(std.posix.STDOUT_FILENO, "hejsa");
-        //     return;
-        // }
-        // while (game_display.stdin_buffer.ptr > 0) {
-        //     game_display.stdin_buffer.mutex.lock();
-        //     game_display.stdin_buffer.ptr -= 1;
-        //     const key = game_display.stdin_buffer.buf[game_display.stdin_buffer.ptr];
-        //     if (key == 'w') {
-        //         sprite_y -= 1;
-        //     }
-        //     if (key == 's') {
-        //         sprite_y += 1;
-        //     }
-        //     if (key == 'd') {
-        //         sprite_x += 1;
-        //     }
-        //     if (key == 'a') {
-        //         sprite_x -= 1;
-        //     }
-        //     game_display.stdin_buffer.mutex.unlock();
-        // }
-        rendering.render.render_0(&buffer);
-        rendering.render.render(&sprite, sprite_x, sprite_y, helpers.constants.WINDOW_WIDTH, &buffer);
-        try game_display.display_buffer(&buffer);
 
+        rendering.render.render_0(&buffer);
         const keys_pressed = game_display.read_events() catch {
             std.debug.print("Quit button was pressed. Quitting now", .{});
             rendering.display.c.SDL_Quit();
             break :gameloop;
         };
-        std.debug.print("{}, {}", .{ sprite_x, sprite_y });
-        // if (key_pressed_count == 1) {
-        // std.debug.print("Found button press: {any}\n", .{input_buffer[0]});
-        // std.debug.print("Scancode s: {}\n", .{@as(u32, c.SDL_SCANCODE_S)});
-        if (keys_pressed[c.SDL_SCANCODE_S]) {
-            sprite_y += 1;
+        for (entities[0..last_entity_ptr]) |entity| {
+            entity.update(keys_pressed);
         }
-        if (keys_pressed[c.SDL_SCANCODE_W]) {
-            sprite_y -= 1;
+
+        for (entities[0..last_entity_ptr]) |entity| {
+            rendering.render.render(
+                entity.get_curr_sprite(),
+                entity.x,
+                entity.y,
+                helpers.constants.WINDOW_WIDTH,
+                &buffer,
+            );
         }
-        if (keys_pressed[c.SDL_SCANCODE_D]) {
-            sprite_x += 1;
-        }
-        if (keys_pressed[c.SDL_SCANCODE_A]) {
-            sprite_x -= 1;
-        }
-        // }
-        // std.debug.print("[Iter: {}]Keys pressed: {any}\n", .{ iter, input_buffer[0..key_pressed_count] });
-        // std.time.sleep(50000000);
+        try game_display.display_buffer(&buffer);
     }
 }
 

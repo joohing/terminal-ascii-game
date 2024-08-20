@@ -64,8 +64,8 @@ pub fn build(b: *std.Build) !void {
     // });
 
     // const sdl_artifact = sdl_dep.artifact("SDL2");
-
-    exe.addLibraryPath(.{ .src_path = .{ .owner = b, .sub_path = "/opt/homebrew/lib/" } });
+    exe.addIncludePath(.{ .src_path = .{ .owner = b, .sub_path = "/opt/homebrew/include/SDL2" } });
+    exe.addLibraryPath(.{ .src_path = .{ .owner = b, .sub_path = "/opt/homebrew/lib" } });
     exe.addIncludePath(.{ .src_path = .{ .owner = b, .sub_path = "/opt/homebrew/include" } });
     exe.linkSystemLibrary("SDL2");
     exe.linkSystemLibrary("SDL2_ttf");
@@ -117,6 +117,7 @@ pub fn build(b: *std.Build) !void {
         "src/main.zig",
         "src/rendering/rendering.zig",
         "src/helpers/helpers.zig",
+        "src/entities/entities.zig",
     };
     var modules = [_]*std.Build.Module{undefined} ** module_paths.len;
     var module_names = [_][]const u8{undefined} ** module_paths.len;
@@ -130,17 +131,16 @@ pub fn build(b: *std.Build) !void {
         modules[index] = module;
 
         module_names[index] = module_name;
-
         // std.debug.print("Discovered module with name {s}\n", .{module_name});
         exe.root_module.addImport(module_name, module);
+        module.linkSystemLibrary("SDL2", .{});
+        module.addLibraryPath(.{ .src_path = .{ .owner = b, .sub_path = "/opt/homebrew/lib" } });
+        module.addIncludePath(.{ .src_path = .{ .owner = b, .sub_path = "/opt/homebrew/include" } });
     }
 
-    modules[1].addLibraryPath(.{ .src_path = .{ .owner = b, .sub_path = "/opt/homebrew/lib/" } });
-    modules[1].addIncludePath(.{ .src_path = .{ .owner = b, .sub_path = "/opt/homebrew/include" } });
-    modules[1].linkSystemLibrary("SDL2", .{});
-    // modules[1].linkSystemLibrary("SDL2_ttf", .{});
-
     modules[1].addImport(module_names[2], modules[2]);
+    modules[3].addImport(module_names[1], modules[1]);
+
     for (0..module_paths.len) |index| {
         const unit_test_module = b.addTest(.{
             .root_source_file = b.path(module_paths[index]),
