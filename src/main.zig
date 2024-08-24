@@ -3,40 +3,22 @@ pub const c = @cImport({
 });
 
 const std = @import("std");
-// const s = @import("sprite_files");
 const rendering = @import("rendering");
 const helpers = @import("helpers");
 const Entity = @import("entities").entity.Entity;
 const PlayerEntity = @import("entities").player_entity.PlayerEntity;
 const EnemyEntity = @import("entities").enemy_entity.EnemyEntity;
-// pub const rendering = @import("rendering");
-// const rendering = @import("rendering");
-// const sprites = rendering.sprites;
-
-// const sprites = @import("rendering/sprites.zig");
-// const rendering_2 = @import("rendering/rendering.zig");
 
 pub fn main() !void {
-    // const old_mode = try std.posix.tcgetattr(std.posix.STDIN_FILENO);
-    // defer std.posix.tcsetattr(std.posix.STDIN_FILENO, .FLUSH, old_mode) catch {};
-
-    // var raw_mode = old_mode;
-    // raw_mode.lflag.ECHO = false;
-    // raw_mode.lflag.ICANON = false;
-    // try std.posix.tcsetattr(std.posix.STDIN_FILENO, .FLUSH, raw_mode);
-
-    // var buf: [1]u8 = undefined;
-    // while (true) {
-    //     _ = try std.posix.read(std.posix.STDIN_FILENO, &buf);
-    //     if (buf[0] == 'q') {
-    //         _ = try std.posix.write(std.posix.STDOUT_FILENO, "hejsa");
-    //         return;
-    //     }
-    // }
-
     var allocator = std.heap.page_allocator;
-    var buffer: [helpers.constants.WINDOW_WIDTH * helpers.constants.WINDOW_HEIGHT]u8 = undefined;
 
+    // var render_buffer: rendering.common.RenderBuffer[helpers.constants.WINDOW_WIDTH * helpers.constants.WINDOW_HEIGHT]u8 = undefined;
+    var char_buffer: [helpers.constants.WINDOW_WIDTH * helpers.constants.WINDOW_HEIGHT]u8 = undefined;
+    var rotation_buffer: [helpers.constants.WINDOW_WIDTH * helpers.constants.WINDOW_HEIGHT]helpers.Direction = undefined;
+    var render_buffer = rendering.common.RenderBuffer{
+        .chars = &char_buffer,
+        .rotation = &rotation_buffer,
+    };
     const collection = try rendering.sprites.load_sprite_collection(&allocator);
     var iter: u32 = 0;
     var game_display = try rendering.display.GameDisplay.init();
@@ -65,7 +47,7 @@ pub fn main() !void {
         prev_frame = std.time.nanoTimestamp();
         next_frame = prev_frame + time_per_frame;
 
-        rendering.render.render_0(&buffer);
+        rendering.render.render_0(render_buffer.chars);
         const keys_pressed = game_display.read_events() catch {
             std.debug.print("Quit button was pressed. Quitting now", .{});
             rendering.display.c.SDL_Quit();
@@ -82,10 +64,10 @@ pub fn main() !void {
                 entity.y,
                 entity.rotation,
                 helpers.constants.WINDOW_WIDTH,
-                &buffer,
+                &render_buffer,
             );
         }
-        try game_display.display_buffer(&buffer);
+        try game_display.display_buffer(&render_buffer);
     }
 }
 

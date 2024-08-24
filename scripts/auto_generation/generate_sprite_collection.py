@@ -19,7 +19,23 @@ SPRITE_COLLECTION_TEMPLATE_FILE_NAME = "sprite_collection.jinja"
 # This is where we declare what headers are expected in each sprite file.
 # Headers contain information related to parsing the .sprite file.
 # If a .sprite file does not contain these headers, then the game will crash on startup.
-sprite_headers = {}
+from typing import TypedDict
+
+
+class FieldInfo(TypedDict):
+    type: str
+    coercion: str
+
+
+sprite_headers: dict[str, FieldInfo] = {
+    "rotation": FieldInfo(
+        type="helpers.Direction",
+        coercion="switch ({arg}[0]) "
+        + "{{"
+        + "'u' => helpers.Direction.Up, 'r' => helpers.Direction.Right, 'd' => helpers.Direction.Down, 'l' => helpers.Direction.Left, else => HeaderInitError.UnexpectedRotation, "
+        + "}}",
+    )
+}
 
 
 def main():

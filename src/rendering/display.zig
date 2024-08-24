@@ -5,6 +5,7 @@ pub const c = @cImport({
 
 const constants = @import("helpers").constants;
 const std = @import("std");
+const common = @import("common.zig");
 const SDL_WINDOW_HEIGHT: u32 = 1000;
 const SDL_WINDOW_WIDTH: u32 = 1500;
 
@@ -13,9 +14,6 @@ const ReadEventError = error{
 };
 
 pub const GameDisplay = struct {
-    // stdin_buffer: InputBuffer,
-    stdin: std.fs.File,
-    stdout: std.fs.File,
     win: *c.SDL_Window,
     font: *c.TTF_Font,
     font_color: c.SDL_Color,
@@ -27,7 +25,6 @@ pub const GameDisplay = struct {
         _ = c.SDL_Init(c.SDL_VIDEO_DRIVER_COCOA);
         _ = c.TTF_Init();
 
-        // _ = c.SDL_SetHint(c.SDL_HINT_RENDER_DRIVER, "opengl");
         const font: *c.TTF_Font = c.TTF_OpenFont("assets/fonts/Consolas.ttf", 50) orelse sdl_panic("Loading font");
         const font_color: c.SDL_Color = .{ .r = 255, .g = 255, .b = 255 };
         const win = c.SDL_CreateWindow("Game", c.SDL_WINDOWPOS_CENTERED, c.SDL_WINDOWPOS_CENTERED, SDL_WINDOW_WIDTH, SDL_WINDOW_HEIGHT, 0) orelse sdl_panic("Creating window");
@@ -44,14 +41,8 @@ pub const GameDisplay = struct {
             } else {
                 texture_buffer[char] = texture;
             }
-            // var buf: [128]u8 = .{0} ** 128;
-            // const printed_chars = std.fmt.bufPrint(&buf, "Creating texture for character {}", .{char}) catch unreachable;
-            // sdl_panic(printed_chars);
-
         }
         return GameDisplay{
-            .stdin = undefined,
-            .stdout = std.io.getStdOut(),
             .win = win,
             .font_color = font_color,
             .font = font,
@@ -61,35 +52,14 @@ pub const GameDisplay = struct {
         };
     }
 
-    // pub fn start_stdin_reading_thread(self: *GameDisplay) !void {
-    //     _ = try std.Thread.spawn(.{}, read_stdin_thread, .{&self.stdin_buffer});
-    // }
-
-    pub fn display_buffer(self: *GameDisplay, buffer: []const u8) !void {
-        // try self.clear_display();
-        // try self.disable_echo();
-
-        // if (c.SDL_SetRenderDrawColor(self.renderer, 0, 0, 0, 255) != 0) sdl_panic("Setting render draw color");
-        // if (c.SDL_RenderFillRect(self.renderer, &.{ .x = 0, .y = 0, .w = SDL_WINDOW_WIDTH, .h = SDL_WINDOW_HEIGHT }) != 0) sdl_panic("Filling rect with color");
+    pub fn display_buffer(self: *GameDisplay, render_buffer: *common.RenderBuffer) !void {
         if (c.SDL_RenderClear(self.renderer) != 0) {
             sdl_panic("Clearing renderer");
         }
-        // const row_count = constants.WINDOW_HEIGHT;
-
-        // const arr_size = constants.WINDOW_HEIGHT * (constants.WINDOW_WIDTH + 1);
-        // var newline_separated_buffer: [arr_size]u8 = .{0} ** arr_size;
-        // for (0..row_count) |row| {
-        //     const start_newline_buf = row * (constants.WINDOW_WIDTH + 1);
-        //     const end_newline_buf = (row + 1) * (constants.WINDOW_WIDTH + 1) - 1;
-        //     const start_buf = row * constants.WINDOW_WIDTH;
-        //     const end_buf = (row + 1) * constants.WINDOW_WIDTH;
-        //     std.mem.copyForwards(u8, newline_separated_buffer[start_newline_buf..end_newline_buf], buffer[start_buf..end_buf]);
-        //     newline_separated_buffer[end_newline_buf] = @intFromEnum(constants.Ascii.NEWLINE);
-        // }
         const char_w = SDL_WINDOW_WIDTH / constants.WINDOW_WIDTH;
         const char_h = SDL_WINDOW_HEIGHT / constants.WINDOW_HEIGHT;
 
-        for (buffer, 0..) |char, index| {
+        for (render_buffer.chars, 0..) |char, index| {
             const texture = self.texture_buffer[char];
             if (texture == null) {
                 std.debug.print("Could not display charactr '{}'\n", .{char});
@@ -102,76 +72,14 @@ pub const GameDisplay = struct {
             const y = row * char_h;
 
             const dest_rect: c.SDL_Rect = .{ .x = @intCast(x), .y = @intCast(y), .w = @intCast(char_w), .h = @intCast(char_h) }; //create a rect
-
-            if (c.SDL_RenderCopy(self.renderer, texture, null, &dest_rect) != 0) {
+            const angle: f32 = render_buffer.rotation[index].to_angle();
+            const center = c.SDL_Point{ .x = 0, .y = 0 };
+            if (c.SDL_RenderCopyEx(self.renderer, texture, null, &dest_rect, angle, &center, 0) != 0) {
                 sdl_panic("Could not render");
             }
         }
-        // newline_separated_buffer[newline_separated_buffer.len - 1] = 0;
 
-        // const surface = c.TTF_RenderText_LCD_Wrapped(self.font, &newline_separated_buffer, self.font_color, .{ .r = 0, .g = 0, .b = 0, .a = 255 }, 0) orelse ttf_panic("Rendering text");
-        // const dest_rect: c.SDL_Rect = .{ .x = 0, .y = 0, .w = SDL_WINDOW_WIDTH, .h = SDL_WINDOW_HEIGHT }; //create a rect
-
-        // const texture: *c.SDL_Texture = c.SDL_CreateTextureFromSurface(self.renderer, surface) orelse sdl_panic("Creating texture from surface");
-        // const render_result = c.SDL_RenderCopy(self.renderer, texture, null, &dest_rect);
-        // if (render_result != 0) {
-        //     sdl_panic("Copying from renderer");
-        // }
-        // c.SDL_DestroyTexture(texture);
-        // c.SDL_FreeSurface(surface);
-        // for (0..row_count) |row| {
-        //     const start = row * constants.WINDOW_WIDTH;
-        //     const end = (row + 1) * constants.WINDOW_WIDTH;
-        //     try self.display_text(buffer[start..end], @intCast(row), row_count);
-        // }
-
-        // std.debug.print("{}", .{buffer[0]});
-        // const arr_size = constants.WINDOW_HEIGHT * constants.WINDOW_WIDTH + 1;
-        // var c_str: [arr_size:0]u8 = .{0} ** (arr_size);
-        // std.mem.copyForwards(u8, &c_str, buffer[0..100]);
-        // const surface = c.TTF_RenderText_Solid(self.font, &c_str, self.font_color, 0) orelse ttf_panic("Rendering text");
-
-        // const texture: *c.SDL_Texture = c.SDL_CreateTextureFromSurface(self.renderer, surface) orelse sdl_panic("Creating texture from surface");
-        // const dest_rect: c.SDL_Rect = .{ .x = 0, .y = 0, .w = 1000, .h = 1000 }; //create a rect
-
-        // c.SDL_FreeSurface(surface);
-
-        // _ = try self.stdout.writer().print("Input buffer: {s}", .{self.stdin_buffer.buf[0..self.stdin_buffer.ptr]});
         c.SDL_RenderPresent(self.renderer);
-    }
-
-    // fn display_text(self: *GameDisplay, line: []const u8, line_index: u32, total_lines: u32) !void {
-    //     const height = SDL_WINDOW_HEIGHT / total_lines;
-
-    //     const arr_size = constants.WINDOW_HEIGHT * constants.WINDOW_WIDTH + 1;
-    //     var c_str: [arr_size:0]u8 = .{0} ** (arr_size);
-
-    //     std.mem.copyForwards(u8, &c_str, line);
-    //     const surface = c.TTF_RenderText_Solid(self.font, &c_str, self.font_color) orelse ttf_panic("Rendering text");
-
-    //     const dest_rect: c.SDL_Rect = .{ .x = 0, .y = @intCast(line_index * height), .w = SDL_WINDOW_WIDTH, .h = @intCast(height) }; //create a rect
-
-    //     const texture: *c.SDL_Texture = c.SDL_CreateTextureFromSurface(self.renderer, surface) orelse sdl_panic("Creating texture from surface");
-    //     const render_result = c.SDL_RenderCopy(self.renderer, texture, null, &dest_rect);
-    //     if (render_result != 0) {
-    //         sdl_panic("Copying from renderer");
-    //     }
-    //     c.SDL_DestroyTexture(texture);
-    //     c.SDL_FreeSurface(surface);
-    // }
-
-    fn hide_cursor(self: *GameDisplay) !void {
-        try self.stdout.writer().print("\x1B[?25l\n", .{});
-    }
-    fn show_cursor(self: *GameDisplay) !void {
-        _ = try self.stdout.writer().print("\x1B[?25h\n", .{});
-    }
-    fn clear_display(self: *GameDisplay) !void {
-        _ = try self.stdout.writer().print("\x1B[2J\n", .{});
-    }
-
-    fn disable_echo(self: *GameDisplay) !void {
-        _ = try self.stdout.writer().print("\x1B[12h\n", .{});
     }
 
     pub fn read_events(self: *GameDisplay) ReadEventError!*[256]bool {
@@ -195,10 +103,7 @@ pub const GameDisplay = struct {
                 c.SDL_KEYUP => {
                     self._input_buffer[event.key.keysym.scancode] = false;
                 },
-                else => {
-
-                    // for now we only care about key downs. In the future we might support different events.
-                },
+                else => {},
             }
         }
         return &self._input_buffer;

@@ -2,9 +2,20 @@ const std = @import("std");
 const sprites = @import("sprites.zig");
 const constants = @import("helpers").constants;
 const helpers = @import("helpers");
-pub fn render(sprite: *const sprites.Sprite, x: i32, y: i32, rotation: helpers.Direction, window_width: u8, render_buffer: []u8) void {
+const common = @import("common.zig");
+
+pub fn render(
+    sprite: *const sprites.Sprite,
+    x: i32,
+    y: i32,
+    rotation: helpers.Direction,
+    window_width: u8,
+    render_buffer: *common.RenderBuffer,
+) void {
+    const rel_rotation = rotation.get_direction_diff(sprite.headers.rotation);
+
     std.debug.print("Starting render {}...\n", .{sprite});
-    const window_height = render_buffer.len / window_width;
+    const window_height = render_buffer.chars.len / window_width;
     for (sprite.data, 0..) |pixel, index| {
         if (pixel == 32) {
             continue;
@@ -12,7 +23,7 @@ pub fn render(sprite: *const sprites.Sprite, x: i32, y: i32, rotation: helpers.D
         const height = @as(i32, @intCast(sprite.data.len / sprite.stride_length));
         const px_x = @as(i32, @intCast(index % sprite.stride_length));
         const px_y = @as(i32, @intCast(index / sprite.stride_length));
-        const rel_coords: struct { x: i32, y: i32 } = switch (rotation) {
+        const rel_coords: struct { x: i32, y: i32 } = switch (rel_rotation) {
             .Up => .{ .x = px_x, .y = px_y },
             .Down => blk: {
                 const rot_x = sprite.stride_length - px_x;
@@ -35,13 +46,11 @@ pub fn render(sprite: *const sprites.Sprite, x: i32, y: i32, rotation: helpers.D
 
         const buffer_index = abs_coords.x + abs_coords.y * @as(i32, @intCast(window_width));
         if (abs_coords.x >= 0 and abs_coords.y >= 0 and abs_coords.x < window_width and abs_coords.y < window_height) {
-            render_buffer[@intCast(buffer_index)] = pixel;
+            render_buffer.chars[@intCast(buffer_index)] = pixel;
+            render_buffer.rotation[@intCast(buffer_index)] = rel_rotation;
         }
     }
 }
-// pub fn render_entity(entity: *Entity, render_buffer: []u8) void {
-//     render(entity.get_curr_sprite(), entity.x, entity.y, constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT, render_buffer);
-// }
 pub fn render_0(render_buffer: []u8) void {
     for (render_buffer) |*pixel| {
         pixel.* = 32;
@@ -56,14 +65,6 @@ pub fn render_random(render_buffer: []u8) void {
         pixel.* += 48;
     }
 }
-
-// fn render_ui(game_state: GameState) !void {
-//     switch (GameState.Situation) {
-//         Situation.GAMEPLAY => {
-//             rendering.
-//         };
-//     }
-// }
 
 const GameState = struct {
     situation: Situation,

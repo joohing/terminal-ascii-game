@@ -2,7 +2,7 @@
 
 
 const std = @import("std");
-
+const helpers = @import("helpers");
 
 pub const Sprite = struct {
     data: []const u8,
@@ -20,6 +20,12 @@ pub const SpriteCollection = struct {{'{'}}
 const HeaderInitError = error{{'{'}}
     InvalidNumberOfArgs,
     IncorrectArgumentType,
+    UnexpectedRotation,    
+{{'}'}};
+const SpriteLoadError = error{{'{'}}
+    InvalidNumberOfArgs,
+    EmptySprite,
+    NoNewline,
 {{'}'}};
 
 const Headers = struct {{'{'}}{% for field, field_info in sprite_headers.items() %}{{field}}: {{field_info["type"]}},
@@ -31,22 +37,27 @@ const Headers = struct {{'{'}}{% for field, field_info in sprite_headers.items()
         {% else %}
         var args: [{{sprite_headers.__len__()}}][32]u8 = undefined;
         var arg_count: u32 = 0;
-        for (std.mem.splitAny(u8, header_str, ","), 0..) |arg, index| {{'{'}}
-            args[index] = arg;
+        var spliterator = std.mem.splitAny(u8, header_str, ",");
+        while (spliterator.next()) |arg| {{'{'}}
+            std.mem.copyForwards(u8, &args[arg_count], arg);
             arg_count += 1;
         {{'}'}}
 
         if (arg_count != 1) {{'{'}}
-            var msg_buffer: [256]u8 = undefined;
-            const full_msg = std.fmt.bufPrint(&msg_buffer, "Error during extraction of headers in sprite file '{{sprite_name}}.sprite'. Expected {{sprite_headers.__len__()}} argument on the header line, but found {}\n", .{arg_count});
-            return HeaderInitError.InvalidNumberOfArgs(full_msg);
+            {# var msg_buffer: [256]u8 = undefined; #}
+            {# const full_msg = std.fmt.bufPrint(&msg_buffer, "Error during extraction of headers in sprite file '{{sprite_name}}.sprite'. Expected {{sprite_headers.__len__()}} argument on the header line, but found {}\n", .{arg_count}); #}
+            return HeaderInitError.InvalidNumberOfArgs;
         {{'}'}}
         {% for field, field_info in sprite_headers.items() %}
-        const {{field}} = {{field_info["coercion"].format(arg="args[" + loop.index0.__str__() +"]")}} catch {{'{'}}
-            return HeaderInitError.IncorrectArgumentType("File: '{{SPRITE_NAME}}'.sprite, argument: '{{field}}'");
+        const {{field}} = {{field_info["coercion"].format(arg="args[" + loop.index0.__str__() +"]")}} catch |e| {{'{'}}
+            std.debug.print("Failed to load rotation. Got {{'{'}}s{{'}'}}, expected one of 'u', 'r', 'd', 'l'.\n", .{{'{'}}args[0]{{'}'}});
+            return switch (e) {{'{'}}
+                HeaderInitError.UnexpectedRotation => e,
+                else => HeaderInitError.IncorrectArgumentType, //("File: ''.sprite, argument: 'rotation'"),
+            {{'}'}};
         {{'}'}};
         {% endfor %}
-        return Headers{{'{'}}{% for field in sprite_fields %}
+        return Headers{{'{'}}{% for field in sprite_headers.keys() %}
             .{{field}} = {{field}},{% endfor %}
         {{'}'}};
         {% endif %}
@@ -59,8 +70,21 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     const {{sprite_name}}_file_size: u64 = (try {{sprite_name}}_file.stat()).size;
     var {{sprite_name}}_content = try allocator.alloc(u8, @intCast({{sprite_name}}_file_size));
     _ = try {{sprite_name}}_file.read({{sprite_name}}_content);
+    if ({{sprite_name}}_content[{{sprite_name}}_content.len-1] != '\n') {
+        std.debug.print("Sprite '{{sprite_name}}.sprite' must end in a newline\n", .{{'{}'}});
+        return SpriteLoadError.NoNewline;
+    }
     const {{sprite_name}}_header_content = {{sprite_name}}_content[0..find_first_newline({{sprite_name}}_content)];
-    const {{sprite_name}}_header = try Headers.init({{sprite_name}}_header_content);
+    std.debug.print("First newline for {{sprite_name}}: {{'{}'}}", .{{'{'}}find_first_newline({{sprite_name}}_content){{'}'}});
+    {{sprite_name}}_content = {{sprite_name}}_content[find_first_newline({{sprite_name}}_content)+1..];
+    const {{sprite_name}}_header = Headers.init({{sprite_name}}_header_content) catch |e| {{'{'}}
+        std.debug.print("Failed loading headers for file '{{sprite_name}}.sprite'. Header content: {{'{'}}s{{'}'}}\n", .{{'{'}}{{sprite_name}}_header_content{{'}'}});
+        return e;
+    {{'}'}};
+    if ({{sprite_name}}_content.len == 0) {
+        std.debug.print("Sprite '{{sprite_name}}.sprite' with header '{{'{}'}}'' has no content.\n", .{{'{'}}{{sprite_name}}_header{{'}'}});
+        return SpriteLoadError.EmptySprite;
+    }
     const {{sprite_name}}_stride = find_first_newline({{sprite_name}}_content);
     const {{sprite_name}}_newline_count = std.mem.replace(u8, {{sprite_name}}_content, "\n", "", {{sprite_name}}_content);
     {{sprite_name}}_content = {{sprite_name}}_content[0 .. {{sprite_name}}_content.len - {{sprite_name}}_newline_count];
@@ -68,9 +92,7 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     
 
     {% endfor %}
-
-
-    return SpriteCollection {{'{'}}{% for sprite_name in sprite_names %}
+    const collection = SpriteCollection {{'{'}}{% for sprite_name in sprite_names %}
         .{{sprite_name}} = Sprite {
             .data={{sprite_name}}_content,
             .stride_length=@intCast({{sprite_name}}_stride),
@@ -78,6 +100,8 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
         },
     {% endfor %}
     {{'}'}};
+    std.debug.print("Loaded sprites: {}\n", .{collection});
+    return collection;
     
     
 {{'}'}}
@@ -89,7 +113,7 @@ fn find_first_newline(buffer: []u8) usize {
             return index;
         }
     }
-    return 0;
+    return buffer.len;
 }
 
 fn find_longest_line(buffer: []u8) usize {
