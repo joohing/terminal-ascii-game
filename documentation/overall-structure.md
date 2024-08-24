@@ -27,13 +27,13 @@ For example consider this sprite:
 
 \
  \
-  O
+ O
 
 We compute the minimum rectangle including all pixels:
 |---|
-|\  |
+|\ |
 | \ |
-|  O|
+| O|
 |---|
 This means we need a u8 buffer of length 3x3=9 to store the whole sprite.
 Any pixels that are empty are simply transparent, and do not override the pixels that have already been written.
@@ -56,8 +56,8 @@ an animation. E.g.:
 
 ```
 /--
-|  
-|  
+|
+|
 --\
   |
   |
@@ -83,6 +83,11 @@ const Sprites = struct {
 
 ### Loading sprites
 
+Format of .sprite files:
+First line is the header, and should contain:
+
+auto_rotate:bool (if true, we will create 4 different versions of this sprite with different rotations)
+
 Sprites can have any amount of chars in each line, as long as it's below `width`. If the line ends
 up being less than `width` then the line is padded with whitespace.
 
@@ -90,6 +95,8 @@ The animations of the sprites are loaded by getting the amount of lines per fram
 header and then using the `width` to access the i'th frame in the animation.
 
 `load_sprite` should do a heap allocation and store the sprite there. We need to do this because we don't know the size of it.
+
+Sprites will be output as fields on the `SpriteCollection` struct.
 
 ### Entities
 

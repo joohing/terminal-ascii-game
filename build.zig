@@ -140,6 +140,7 @@ pub fn build(b: *std.Build) !void {
 
     modules[1].addImport(module_names[2], modules[2]);
     modules[3].addImport(module_names[1], modules[1]);
+    modules[3].addImport(module_names[2], modules[2]);
 
     for (0..module_paths.len) |index| {
         const unit_test_module = b.addTest(.{

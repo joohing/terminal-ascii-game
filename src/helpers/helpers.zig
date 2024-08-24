@@ -13,6 +13,13 @@ pub fn concat_strs(s1: []const u8, s2: []const u8, dest: *[DEST_BUFFER_SIZE]u8, 
 //     std.mem.copyForwards(u8, dest[s1.len..], s2);
 // }
 
+pub const Direction = enum {
+    Up,
+    Right,
+    Down,
+    Left,
+};
+
 const ArrUtilError = error{
     ItemNotFound,
 };
@@ -26,6 +33,29 @@ pub fn remove(arr: []*anyopaque, item: *anyopaque) ArrUtilError!void {
         }
     }
     return ArrUtilError.ItemNotFound;
+}
+
+const StrToBoolError = error{
+    InvalidString,
+};
+
+pub fn str_to_bool(s: []u8) StrToBoolError!bool {
+    if (s == &"true") {
+        return true;
+    }
+    if (s == &"false") {
+        return false;
+    }
+    return StrToBoolError.InvalidString;
+}
+
+fn join_strs(s1: []const u8, s2: []const u8, buf: []u8) void {
+    for (s1, 0..) |char, index| {
+        buf[index] = char;
+    }
+    for (s2, 0..) |char, index| {
+        buf[s1.len + index] = char;
+    }
 }
 
 test {
