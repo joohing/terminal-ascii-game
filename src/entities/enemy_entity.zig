@@ -1,18 +1,12 @@
 const std = @import("std");
 const Entity = @import("entity.zig").Entity;
 const rendering = @import("rendering");
+const helpers = @import("helpers");
 const c = @cImport({
     @cInclude("SDL2/sdl.h");
 });
 
-const Direction = enum {
-    Up,
-    Right,
-    Down,
-    Left,
-};
-
-fn next_dir(dir: Direction) Direction {
+fn next_dir(dir: helpers.Direction) helpers.Direction {
     return switch (dir) {
         .Up => .Right,
         .Right => .Down,
@@ -24,21 +18,20 @@ fn next_dir(dir: Direction) Direction {
 pub const EnemyEntity = struct {
     sprite: *const rendering.sprites.Sprite,
     entity: Entity,
-    dir: Direction,
     frames_until_change_dir: u32,
 
-    pub fn init(start_x: i32, start_y: i32, sprite_collection: *const rendering.sprite_collection.SpriteCollection) EnemyEntity {
+    pub fn init(start_x: i32, start_y: i32, sprite_collection: *const rendering.sprites.SpriteCollection) EnemyEntity {
         const entity = Entity.init(
             update,
             get_curr_sprite,
             start_x,
             start_y,
+            helpers.Direction.Up,
         );
 
         return EnemyEntity{
             .entity = entity,
             .sprite = &sprite_collection.MONSTER_1,
-            .dir = .Up,
             .frames_until_change_dir = 10,
         };
     }
@@ -54,11 +47,10 @@ pub fn update(entity: *Entity, _: *const [256]bool) void {
     const self: *EnemyEntity = @fieldParentPtr("entity", entity);
     self.frames_until_change_dir = self.frames_until_change_dir - 1;
     if (self.frames_until_change_dir == 0) {
-        self.dir = next_dir(self.dir);
+        self.entity.rotation = next_dir(self.entity.rotation);
         self.frames_until_change_dir = 10;
     }
-    std.debug.print("Direction: {}", .{self.dir});
-    switch (self.dir) {
+    switch (self.entity.rotation) {
         .Up => {
             self.entity.y -= 1;
         },

@@ -37,7 +37,7 @@ pub fn main() !void {
     var allocator = std.heap.page_allocator;
     var buffer: [helpers.constants.WINDOW_WIDTH * helpers.constants.WINDOW_HEIGHT]u8 = undefined;
 
-    const collection = try rendering.sprite_collection.load_sprite_collection(&allocator);
+    const collection = try rendering.sprites.load_sprite_collection(&allocator);
     var iter: u32 = 0;
     var game_display = try rendering.display.GameDisplay.init();
 
@@ -50,12 +50,8 @@ pub fn main() !void {
     var entities: [256]*Entity = .{undefined} ** 256;
     entities[0] = &player_entity.entity;
     entities[1] = &enemy_entity.entity;
-    const player_address = @intFromPtr(&player_entity);
-    const entity_address = @intFromPtr(&player_entity.entity);
 
     const last_entity_ptr: u32 = 2;
-    std.debug.print("\nPlayer address: {}.\nPlayer: {}\n", .{ player_address, player_entity });
-    std.debug.print("Entity address: {}\n.", .{entity_address});
 
     gameloop: while (true) {
         iter += 1;
@@ -84,6 +80,7 @@ pub fn main() !void {
                 entity.get_curr_sprite(),
                 entity.x,
                 entity.y,
+                entity.rotation,
                 helpers.constants.WINDOW_WIDTH,
                 &buffer,
             );

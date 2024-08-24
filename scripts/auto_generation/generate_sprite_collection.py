@@ -10,10 +10,16 @@ ROOT_FOLDER = "./../.."
 
 RELATIVE_SPRITE_FOLDER = ROOT_FOLDER + "/assets/sprites"
 SPRITE_FOLDER = os.path.curdir + "/assets/sprites"
-SPRITE_COLLECTION_FILE = os.path.curdir + "/src/rendering/sprite_collection.zig"
+SPRITE_COLLECTION_FILE = os.path.curdir + "/src/rendering/sprites.zig"
 
 TEMPLATE_FOLDER = os.path.curdir + "/scripts/auto_generation/templates"
 SPRITE_COLLECTION_TEMPLATE_FILE_NAME = "sprite_collection.jinja"
+
+
+# This is where we declare what headers are expected in each sprite file.
+# Headers contain information related to parsing the .sprite file.
+# If a .sprite file does not contain these headers, then the game will crash on startup.
+sprite_headers = {}
 
 
 def main():
@@ -23,6 +29,7 @@ def main():
     context = {
         "sprite_names": sprite_names,
         "sprite_folder": RELATIVE_SPRITE_FOLDER,
+        "sprite_headers": sprite_headers,
     }
 
     rendered_file = template.render(context)
@@ -31,7 +38,7 @@ def main():
         print(f"Writing to file {SPRITE_COLLECTION_FILE}")
         f.write(rendered_file)
     print("Running zig fmt on generated file..")
-    os.system("zig fmt src/rendering/sprite_collection.zig")
+    os.system("zig fmt src/rendering/sprites.zig")
 
 
 def get_sprite_names() -> list[str]:

@@ -1,21 +1,40 @@
 const std = @import("std");
 const sprites = @import("sprites.zig");
 const constants = @import("helpers").constants;
-// const constants = @import("helpers").constants;
-
-pub fn render(sprite: *const sprites.Sprite, x: i32, y: i32, window_width: u8, render_buffer: []u8) void {
+const helpers = @import("helpers");
+pub fn render(sprite: *const sprites.Sprite, x: i32, y: i32, rotation: helpers.Direction, window_width: u8, render_buffer: []u8) void {
     std.debug.print("Starting render {}...\n", .{sprite});
     const window_height = render_buffer.len / window_width;
     for (sprite.data, 0..) |pixel, index| {
         if (pixel == 32) {
             continue;
         }
+        const height = @as(i32, @intCast(sprite.data.len / sprite.stride_length));
+        const px_x = @as(i32, @intCast(index % sprite.stride_length));
+        const px_y = @as(i32, @intCast(index / sprite.stride_length));
+        const rel_coords: struct { x: i32, y: i32 } = switch (rotation) {
+            .Up => .{ .x = px_x, .y = px_y },
+            .Down => blk: {
+                const rot_x = sprite.stride_length - px_x;
+                const rot_y = height - px_y;
+                break :blk .{ .x = rot_x, .y = rot_y };
+            },
+            .Left => blk: {
+                const rot_x = px_y;
+                const rot_y = sprite.stride_length - px_x;
+                break :blk .{ .x = rot_x, .y = rot_y };
+            },
+            .Right => blk: {
+                const rot_x = height - px_y;
+                const rot_y = px_x;
+                break :blk .{ .x = rot_x, .y = rot_y };
+            },
+        };
+        const abs_coords = .{ .x = rel_coords.x + x, .y = rel_coords.y + y };
+        std.debug.print("coords: {}\n", .{abs_coords});
 
-        const this_x = @as(i32, @intCast(index % sprite.stride_length)) + x;
-        const this_y = @as(i32, @intCast(index / sprite.stride_length)) + y;
-
-        const buffer_index = this_x + this_y * @as(i32, @intCast(window_width));
-        if (this_x >= 0 and this_y >= 0 and this_x < window_width and this_y < window_height) {
+        const buffer_index = abs_coords.x + abs_coords.y * @as(i32, @intCast(window_width));
+        if (abs_coords.x >= 0 and abs_coords.y >= 0 and abs_coords.x < window_width and abs_coords.y < window_height) {
             render_buffer[@intCast(buffer_index)] = pixel;
         }
     }
