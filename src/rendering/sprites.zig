@@ -22,6 +22,7 @@ const HeaderInitError = error{
     IncorrectArgumentType,
     UnexpectedRotation,
 };
+
 const SpriteLoadError = error{
     InvalidNumberOfArgs,
     EmptySprite,
@@ -32,9 +33,10 @@ const Headers = struct {
     rotation: helpers.Direction,
     center_of_rotation_x: u8,
     center_of_rotation_y: u8,
+    lines_per_frame: u8,
 
     fn init(header_str: []u8) !Headers {
-        var args: [3][]const u8 = undefined;
+        var args: [4][]const u8 = undefined;
         var arg_count: u32 = 0;
         var spliterator = std.mem.splitAny(u8, header_str, ",");
         while (spliterator.next()) |arg| {
@@ -42,7 +44,7 @@ const Headers = struct {
             arg_count += 1;
         }
 
-        if (arg_count != 3) {
+        if (arg_count != 4) {
             return HeaderInitError.InvalidNumberOfArgs;
         }
 
@@ -73,10 +75,18 @@ const Headers = struct {
             };
         };
 
+        const lines_per_frame = std.fmt.parseInt(u8, args[3], 10) catch |e| {
+            std.debug.print("Failed to load header lines_per_frame. Got {s}.", .{args[3]});
+            return switch (e) {
+                else => e,
+            };
+        };
+
         return Headers{
             .rotation = rotation,
             .center_of_rotation_x = center_of_rotation_x,
             .center_of_rotation_y = center_of_rotation_y,
+            .lines_per_frame = lines_per_frame,
         };
     }
 };

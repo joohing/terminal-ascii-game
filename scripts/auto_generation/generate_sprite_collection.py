@@ -1,4 +1,4 @@
-"""
+""",1
 This file reads all filenames in the folder /assets/sprites, and constructs a struct in /src/rendering/sprite_collection.zig with fields equal to the filenames.
 """
 
@@ -32,7 +32,11 @@ sprite_headers: dict[str, FieldInfo] = {
         type="helpers.Direction",
         coercion="switch ({arg}[0]) "
         + "{{"
-        + "'u' => helpers.Direction.Up, 'r' => helpers.Direction.Right, 'd' => helpers.Direction.Down, 'l' => helpers.Direction.Left, else => HeaderInitError.UnexpectedRotation, "
+        + "'u' => helpers.Direction.Up,"
+        + "'r' => helpers.Direction.Right,"
+        + "'d' => helpers.Direction.Down,"
+        + "'l' => helpers.Direction.Left,"
+        + "else => HeaderInitError.UnexpectedRotation, "
         + "}}",
     ),
     "center_of_rotation_x": FieldInfo(
@@ -40,6 +44,10 @@ sprite_headers: dict[str, FieldInfo] = {
         coercion="std.fmt.parseInt(u8, {arg}, 10)",
     ),
     "center_of_rotation_y": FieldInfo(
+        type="u8",
+        coercion="std.fmt.parseInt(u8, {arg}, 10)",
+    ),
+    "lines_per_frame": FieldInfo(
         type="u8",
         coercion="std.fmt.parseInt(u8, {arg}, 10)",
     ),
