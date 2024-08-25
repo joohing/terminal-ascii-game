@@ -35,9 +35,18 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     _ = try TEST_file.read(TEST_content);
     const TEST_header_content = TEST_content[0..find_first_newline(TEST_content)];
     const TEST_header = try Headers.init(TEST_header_content);
-    const TEST_stride = find_first_newline(TEST_content);
-    const TEST_newline_count = std.mem.replace(u8, TEST_content, "\n", "", TEST_content);
-    TEST_content = TEST_content[0 .. TEST_content.len - TEST_newline_count];
+    const TEST_stride = find_stride_of(TEST_content);
+    const TEST_newline_count = std.mem.count(u8, TEST_content, "\n") + 1; // Plus one cause no newline at end of file
+
+    const TEST_padded_file_size = TEST_stride * TEST_newline_count;
+    std.debug.print("Size allocated: {d} x {d} = {d} for sprite: TEST\n", .{ TEST_stride, TEST_newline_count, TEST_padded_file_size });
+
+    const TEST_content_padded = try allocator.alloc(u8, @intCast(TEST_padded_file_size));
+    right_pad_sprite(TEST_content_padded, TEST_content, TEST_stride);
+
+    std.debug.print("After padding, chars are ... {s}\n", .{TEST_content_padded});
+
+    _ = std.mem.replace(u8, TEST_content, "\n", "", TEST_content);
 
     const jonathan_file = try std.fs.cwd().openFile("assets/sprites/jonathan.sprite", .{});
     const jonathan_file_size: u64 = (try jonathan_file.stat()).size;
@@ -45,9 +54,18 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     _ = try jonathan_file.read(jonathan_content);
     const jonathan_header_content = jonathan_content[0..find_first_newline(jonathan_content)];
     const jonathan_header = try Headers.init(jonathan_header_content);
-    const jonathan_stride = find_first_newline(jonathan_content);
-    const jonathan_newline_count = std.mem.replace(u8, jonathan_content, "\n", "", jonathan_content);
-    jonathan_content = jonathan_content[0 .. jonathan_content.len - jonathan_newline_count];
+    const jonathan_stride = find_stride_of(jonathan_content);
+    const jonathan_newline_count = std.mem.count(u8, jonathan_content, "\n") + 1; // Plus one cause no newline at end of file
+
+    const jonathan_padded_file_size = jonathan_stride * jonathan_newline_count;
+    std.debug.print("Size allocated: {d} x {d} = {d} for sprite: jonathan\n", .{ jonathan_stride, jonathan_newline_count, jonathan_padded_file_size });
+
+    const jonathan_content_padded = try allocator.alloc(u8, @intCast(jonathan_padded_file_size));
+    right_pad_sprite(jonathan_content_padded, jonathan_content, jonathan_stride);
+
+    std.debug.print("After padding, chars are ... {s}\n", .{jonathan_content_padded});
+
+    _ = std.mem.replace(u8, jonathan_content, "\n", "", jonathan_content);
 
     const MONSTER_1_file = try std.fs.cwd().openFile("assets/sprites/MONSTER_1.sprite", .{});
     const MONSTER_1_file_size: u64 = (try MONSTER_1_file.stat()).size;
@@ -55,9 +73,18 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     _ = try MONSTER_1_file.read(MONSTER_1_content);
     const MONSTER_1_header_content = MONSTER_1_content[0..find_first_newline(MONSTER_1_content)];
     const MONSTER_1_header = try Headers.init(MONSTER_1_header_content);
-    const MONSTER_1_stride = find_first_newline(MONSTER_1_content);
-    const MONSTER_1_newline_count = std.mem.replace(u8, MONSTER_1_content, "\n", "", MONSTER_1_content);
-    MONSTER_1_content = MONSTER_1_content[0 .. MONSTER_1_content.len - MONSTER_1_newline_count];
+    const MONSTER_1_stride = find_stride_of(MONSTER_1_content);
+    const MONSTER_1_newline_count = std.mem.count(u8, MONSTER_1_content, "\n") + 1; // Plus one cause no newline at end of file
+
+    const MONSTER_1_padded_file_size = MONSTER_1_stride * MONSTER_1_newline_count;
+    std.debug.print("Size allocated: {d} x {d} = {d} for sprite: MONSTER_1\n", .{ MONSTER_1_stride, MONSTER_1_newline_count, MONSTER_1_padded_file_size });
+
+    const MONSTER_1_content_padded = try allocator.alloc(u8, @intCast(MONSTER_1_padded_file_size));
+    right_pad_sprite(MONSTER_1_content_padded, MONSTER_1_content, MONSTER_1_stride);
+
+    std.debug.print("After padding, chars are ... {s}\n", .{MONSTER_1_content_padded});
+
+    _ = std.mem.replace(u8, MONSTER_1_content, "\n", "", MONSTER_1_content);
 
     const er_file = try std.fs.cwd().openFile("assets/sprites/er.sprite", .{});
     const er_file_size: u64 = (try er_file.stat()).size;
@@ -65,9 +92,18 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     _ = try er_file.read(er_content);
     const er_header_content = er_content[0..find_first_newline(er_content)];
     const er_header = try Headers.init(er_header_content);
-    const er_stride = find_first_newline(er_content);
-    const er_newline_count = std.mem.replace(u8, er_content, "\n", "", er_content);
-    er_content = er_content[0 .. er_content.len - er_newline_count];
+    const er_stride = find_stride_of(er_content);
+    const er_newline_count = std.mem.count(u8, er_content, "\n") + 1; // Plus one cause no newline at end of file
+
+    const er_padded_file_size = er_stride * er_newline_count;
+    std.debug.print("Size allocated: {d} x {d} = {d} for sprite: er\n", .{ er_stride, er_newline_count, er_padded_file_size });
+
+    const er_content_padded = try allocator.alloc(u8, @intCast(er_padded_file_size));
+    right_pad_sprite(er_content_padded, er_content, er_stride);
+
+    std.debug.print("After padding, chars are ... {s}\n", .{er_content_padded});
+
+    _ = std.mem.replace(u8, er_content, "\n", "", er_content);
 
     const dum_file = try std.fs.cwd().openFile("assets/sprites/dum.sprite", .{});
     const dum_file_size: u64 = (try dum_file.stat()).size;
@@ -75,41 +111,68 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     _ = try dum_file.read(dum_content);
     const dum_header_content = dum_content[0..find_first_newline(dum_content)];
     const dum_header = try Headers.init(dum_header_content);
-    const dum_stride = find_first_newline(dum_content);
-    const dum_newline_count = std.mem.replace(u8, dum_content, "\n", "", dum_content);
-    dum_content = dum_content[0 .. dum_content.len - dum_newline_count];
+    const dum_stride = find_stride_of(dum_content);
+    const dum_newline_count = std.mem.count(u8, dum_content, "\n") + 1; // Plus one cause no newline at end of file
+
+    const dum_padded_file_size = dum_stride * dum_newline_count;
+    std.debug.print("Size allocated: {d} x {d} = {d} for sprite: dum\n", .{ dum_stride, dum_newline_count, dum_padded_file_size });
+
+    const dum_content_padded = try allocator.alloc(u8, @intCast(dum_padded_file_size));
+    right_pad_sprite(dum_content_padded, dum_content, dum_stride);
+
+    std.debug.print("After padding, chars are ... {s}\n", .{dum_content_padded});
+
+    _ = std.mem.replace(u8, dum_content, "\n", "", dum_content);
 
     return SpriteCollection{
         .TEST = Sprite{
-            .data = TEST_content,
+            .data = TEST_content_padded,
             .stride_length = @intCast(TEST_stride),
             .headers = TEST_header,
         },
 
         .jonathan = Sprite{
-            .data = jonathan_content,
+            .data = jonathan_content_padded,
             .stride_length = @intCast(jonathan_stride),
             .headers = jonathan_header,
         },
 
         .MONSTER_1 = Sprite{
-            .data = MONSTER_1_content,
+            .data = MONSTER_1_content_padded,
             .stride_length = @intCast(MONSTER_1_stride),
             .headers = MONSTER_1_header,
         },
 
         .er = Sprite{
-            .data = er_content,
+            .data = er_content_padded,
             .stride_length = @intCast(er_stride),
             .headers = er_header,
         },
 
         .dum = Sprite{
-            .data = dum_content,
+            .data = dum_content_padded,
             .stride_length = @intCast(dum_stride),
             .headers = dum_header,
         },
     };
+}
+
+fn find_stride_of(buffer: []u8) usize {
+    var max_line_len: usize = 0;
+    var line_len: usize = 0;
+
+    for (buffer) |char| {
+        if (char == 10) {
+            line_len = 0;
+        } else {
+            line_len += 1;
+        }
+        if (max_line_len < line_len) {
+            max_line_len = line_len;
+        }
+    }
+
+    return max_line_len;
 }
 
 fn find_first_newline(buffer: []u8) usize {
@@ -132,4 +195,21 @@ fn find_longest_line(buffer: []u8) usize {
     }
 
     return curr_len;
+}
+
+fn right_pad_sprite(buffer_write: []u8, buffer_read: []u8, stride_length: usize) void {
+    var spliterator = std.mem.splitScalar(u8, buffer_read, '\n');
+    var ptr: usize = 0;
+
+    while (spliterator.next()) |val| {
+        for (0..val.len) |i| {
+            buffer_write[ptr + i] = val[i];
+        }
+        if (val.len < stride_length) {
+            for (val.len..stride_length) |i| {
+                buffer_write[ptr + i] = ' ';
+            }
+        }
+        ptr += stride_length;
+    }
 }

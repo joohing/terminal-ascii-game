@@ -2,8 +2,9 @@ const std = @import("std");
 const sprites = @import("sprites.zig");
 const constants = @import("helpers").constants;
 const helpers = @import("helpers");
+
 pub fn render(sprite: *const sprites.Sprite, x: i32, y: i32, rotation: helpers.Direction, window_width: u8, render_buffer: []u8) void {
-    std.debug.print("Starting render {}...\n", .{sprite});
+    // std.debug.print("Starting render {}...\n", .{sprite});
     const window_height = render_buffer.len / window_width;
     for (sprite.data, 0..) |pixel, index| {
         if (pixel == 32) {
@@ -31,7 +32,7 @@ pub fn render(sprite: *const sprites.Sprite, x: i32, y: i32, rotation: helpers.D
             },
         };
         const abs_coords = .{ .x = rel_coords.x + x, .y = rel_coords.y + y };
-        std.debug.print("coords: {}\n", .{abs_coords});
+        // std.debug.print("coords: {}\n", .{abs_coords});
 
         const buffer_index = abs_coords.x + abs_coords.y * @as(i32, @intCast(window_width));
         if (abs_coords.x >= 0 and abs_coords.y >= 0 and abs_coords.x < window_width and abs_coords.y < window_height) {
@@ -39,9 +40,7 @@ pub fn render(sprite: *const sprites.Sprite, x: i32, y: i32, rotation: helpers.D
         }
     }
 }
-// pub fn render_entity(entity: *Entity, render_buffer: []u8) void {
-//     render(entity.get_curr_sprite(), entity.x, entity.y, constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT, render_buffer);
-// }
+
 pub fn render_0(render_buffer: []u8) void {
     for (render_buffer) |*pixel| {
         pixel.* = 32;
@@ -56,14 +55,6 @@ pub fn render_random(render_buffer: []u8) void {
         pixel.* += 48;
     }
 }
-
-// fn render_ui(game_state: GameState) !void {
-//     switch (GameState.Situation) {
-//         Situation.GAMEPLAY => {
-//             rendering.
-//         };
-//     }
-// }
 
 const GameState = struct {
     situation: Situation,
