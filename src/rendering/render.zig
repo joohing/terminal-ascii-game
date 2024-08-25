@@ -14,7 +14,7 @@ pub fn render(
 ) void {
     const rel_rotation = rotation.get_direction_diff(sprite.headers.rotation);
 
-    std.debug.print("Starting render {}...\n", .{sprite});
+    // std.debug.print("Starting render {}...\n", .{sprite});
     const window_height = render_buffer.chars.len / window_width;
     for (sprite.data, 0..) |pixel, index| {
         if (pixel == 32) {
@@ -34,6 +34,7 @@ pub fn render(
         }
     }
 }
+
 pub fn render_0(render_buffer: []u8) void {
     for (render_buffer) |*pixel| {
         pixel.* = 32;
