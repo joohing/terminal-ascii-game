@@ -14,7 +14,7 @@ pub fn render(
 ) void {
     const rel_rotation = rotation.get_direction_diff(sprite.headers.rotation);
 
-    std.debug.print("Starting render {}...\n", .{sprite});
+    // std.debug.print("Starting render {}...\n", .{sprite});
     const window_height = render_buffer.chars.len / window_width;
     for (sprite.data, 0..) |pixel, index| {
         if (pixel == 32) {
@@ -42,7 +42,7 @@ pub fn render(
             },
         };
         const abs_coords = .{ .x = rel_coords.x + x, .y = rel_coords.y + y };
-        std.debug.print("coords: {}\n", .{abs_coords});
+        // std.debug.print("coords: {}\n", .{abs_coords});
 
         const buffer_index = abs_coords.x + abs_coords.y * @as(i32, @intCast(window_width));
         if (abs_coords.x >= 0 and abs_coords.y >= 0 and abs_coords.x < window_width and abs_coords.y < window_height) {
@@ -51,6 +51,7 @@ pub fn render(
         }
     }
 }
+
 pub fn render_0(render_buffer: []u8) void {
     for (render_buffer) |*pixel| {
         pixel.* = 32;
