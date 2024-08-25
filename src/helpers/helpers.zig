@@ -18,6 +18,34 @@ pub const Direction = enum {
     Right,
     Down,
     Left,
+
+    pub fn to_angle(self: *const Direction) f32 {
+        return @as(f32, @floatFromInt(self.to_int())) * 90.0;
+    }
+    pub fn get_direction_diff(self: *const Direction, other: Direction) Direction {
+        // Gets the difference between two directions.
+        // Examples:
+        //    Direction.Up.get_direction_diff(Direction.Right) => Direction.Right
+        //    Direction.Down.get_direction_diff(Direction.Left) => Direction.Right
+        //    Direction.Right.get_direction_diff(Direction.Up) => Direction.Left
+
+        const diff = @as(i32, self.to_int()) - @as(i32, other.to_int());
+        return switch (@mod(diff, 4)) {
+            0 => Direction.Up,
+            1 => Direction.Right,
+            2 => Direction.Down,
+            3 => Direction.Left,
+            else => unreachable,
+        };
+    }
+    fn to_int(self: *const Direction) u2 {
+        return switch (self.*) {
+            Direction.Up => 0,
+            Direction.Right => 1,
+            Direction.Down => 2,
+            Direction.Left => 3,
+        };
+    }
 };
 
 const ArrUtilError = error{
