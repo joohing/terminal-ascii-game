@@ -34,7 +34,15 @@ sprite_headers: dict[str, FieldInfo] = {
         + "{{"
         + "'u' => helpers.Direction.Up, 'r' => helpers.Direction.Right, 'd' => helpers.Direction.Down, 'l' => helpers.Direction.Left, else => HeaderInitError.UnexpectedRotation, "
         + "}}",
-    )
+    ),
+    "center_of_rotation_x": FieldInfo(
+        type="u8",
+        coercion="std.fmt.parseInt(u8, {arg}, 10)",
+    ),
+    "center_of_rotation_y": FieldInfo(
+        type="u8",
+        coercion="std.fmt.parseInt(u8, {arg}, 10)",
+    ),
 }
 
 
