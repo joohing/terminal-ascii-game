@@ -35,17 +35,21 @@ pub fn update(entity: *Entity, keys_pressed: *const [256]bool) void {
     if (keys_pressed[c.SDL_SCANCODE_S]) {
         self.entity.y += 1;
         self.entity.rotation = helpers.Direction.Down;
+        return;
     }
     if (keys_pressed[c.SDL_SCANCODE_W]) {
         self.entity.y -= 1;
         self.entity.rotation = helpers.Direction.Up;
+        return;
     }
     if (keys_pressed[c.SDL_SCANCODE_D]) {
         self.entity.x += 1;
         self.entity.rotation = helpers.Direction.Right;
+        return;
     }
     if (keys_pressed[c.SDL_SCANCODE_A]) {
         self.entity.x -= 1;
         self.entity.rotation = helpers.Direction.Left;
+        return;
     }
 }

@@ -73,7 +73,8 @@ pub const GameDisplay = struct {
 
             const dest_rect: c.SDL_Rect = .{ .x = @intCast(x), .y = @intCast(y), .w = @intCast(char_w), .h = @intCast(char_h) }; //create a rect
             const angle: f32 = render_buffer.rotation[index].to_angle();
-            const center = c.SDL_Point{ .x = 0, .y = 0 };
+
+            const center = c.SDL_Point{ .x = char_w / 2, .y = char_h / 2 };
             if (c.SDL_RenderCopyEx(self.renderer, texture, null, &dest_rect, angle, &center, 0) != 0) {
                 sdl_panic("Could not render");
             }

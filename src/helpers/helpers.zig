@@ -52,30 +52,9 @@ const ArrUtilError = error{
     ItemNotFound,
 };
 
-pub fn remove(arr: []*anyopaque, item: *anyopaque) ArrUtilError!void {
-    for (arr, 0..) |arr_item, index| {
-        if (arr_item == item) {
-            arr[index] = arr[arr.len - 1];
-            arr[arr.len - 1] = null;
-            return;
-        }
-    }
-    return ArrUtilError.ItemNotFound;
-}
-
 const StrToBoolError = error{
     InvalidString,
 };
-
-pub fn str_to_bool(s: []u8) StrToBoolError!bool {
-    if (s == &"true") {
-        return true;
-    }
-    if (s == &"false") {
-        return false;
-    }
-    return StrToBoolError.InvalidString;
-}
 
 fn join_strs(s1: []const u8, s2: []const u8, buf: []u8) void {
     for (s1, 0..) |char, index| {

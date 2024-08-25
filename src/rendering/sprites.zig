@@ -30,17 +30,19 @@ const SpriteLoadError = error{
 
 const Headers = struct {
     rotation: helpers.Direction,
+    center_of_rotation_x: u8,
+    center_of_rotation_y: u8,
 
     fn init(header_str: []u8) !Headers {
-        var args: [1][32]u8 = undefined;
+        var args: [3][]const u8 = undefined;
         var arg_count: u32 = 0;
         var spliterator = std.mem.splitAny(u8, header_str, ",");
         while (spliterator.next()) |arg| {
-            std.mem.copyForwards(u8, &args[arg_count], arg);
+            args[arg_count] = arg;
             arg_count += 1;
         }
 
-        if (arg_count != 1) {
+        if (arg_count != 3) {
             return HeaderInitError.InvalidNumberOfArgs;
         }
 
@@ -51,15 +53,30 @@ const Headers = struct {
             'l' => helpers.Direction.Left,
             else => HeaderInitError.UnexpectedRotation,
         } catch |e| {
-            std.debug.print("Failed to load rotation. Got {s}, expected one of 'u', 'r', 'd', 'l'.\n", .{args[0]});
+            std.debug.print("Failed to load header rotation. Got {s}.", .{args[0]});
             return switch (e) {
-                HeaderInitError.UnexpectedRotation => e,
-                else => HeaderInitError.IncorrectArgumentType, //("File: ''.sprite, argument: 'rotation'"),
+                else => e,
+            };
+        };
+
+        const center_of_rotation_x = std.fmt.parseInt(u8, args[1], 10) catch |e| {
+            std.debug.print("Failed to load header center_of_rotation_x. Got {s}.", .{args[1]});
+            return switch (e) {
+                else => e,
+            };
+        };
+
+        const center_of_rotation_y = std.fmt.parseInt(u8, args[2], 10) catch |e| {
+            std.debug.print("Failed to load header center_of_rotation_y. Got {s}.", .{args[2]});
+            return switch (e) {
+                else => e,
             };
         };
 
         return Headers{
             .rotation = rotation,
+            .center_of_rotation_x = center_of_rotation_x,
+            .center_of_rotation_y = center_of_rotation_y,
         };
     }
 };

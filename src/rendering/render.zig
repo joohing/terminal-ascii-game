@@ -20,28 +20,11 @@ pub fn render(
         if (pixel == 32) {
             continue;
         }
-        const height = @as(i32, @intCast(sprite.data.len / sprite.stride_length));
         const px_x = @as(i32, @intCast(index % sprite.stride_length));
         const px_y = @as(i32, @intCast(index / sprite.stride_length));
-        const rel_coords: struct { x: i32, y: i32 } = switch (rel_rotation) {
-            .Up => .{ .x = px_x, .y = px_y },
-            .Down => blk: {
-                const rot_x = sprite.stride_length - px_x;
-                const rot_y = height - px_y;
-                break :blk .{ .x = rot_x, .y = rot_y };
-            },
-            .Left => blk: {
-                const rot_x = px_y;
-                const rot_y = sprite.stride_length - px_x;
-                break :blk .{ .x = rot_x, .y = rot_y };
-            },
-            .Right => blk: {
-                const rot_x = height - px_y;
-                const rot_y = px_x;
-                break :blk .{ .x = rot_x, .y = rot_y };
-            },
-        };
-        const abs_coords = .{ .x = rel_coords.x + x, .y = rel_coords.y + y };
+        const rel_coords = rotate_point(px_x, px_y, sprite.headers.center_of_rotation_x, sprite.headers.center_of_rotation_y, rel_rotation);
+
+        const abs_coords = .{ .x = rel_coords.x + x - sprite.headers.center_of_rotation_x, .y = rel_coords.y + y - sprite.headers.center_of_rotation_y };
         std.debug.print("coords: {}\n", .{abs_coords});
 
         const buffer_index = abs_coords.x + abs_coords.y * @as(i32, @intCast(window_width));
@@ -128,3 +111,74 @@ fn pretty_print(buffer: []u8, comptime window_width: u8) void {
 //     // pretty_print(&buffer, 10);
 //     try std.testing.expectEqualStrings("- -                 ", buffer[0..20]);
 // }
+
+fn rotate_point(px: i32, py: i32, rotation_axis_x: i32, rotation_axis_y: i32, rotation: helpers.Direction) struct { x: i32, y: i32 } {
+    const x_diff = rotation_axis_x - px;
+    const y_diff = rotation_axis_y - py;
+    //2,0
+    return switch (rotation) {
+        .Up => .{ .x = px, .y = py },
+        .Right => {
+            const res_x = rotation_axis_x + y_diff;
+            const res_y = rotation_axis_y - x_diff;
+            return .{ .x = res_x, .y = res_y };
+        },
+        .Down => {
+            const res_x = x_diff + rotation_axis_x;
+            const res_y = y_diff + rotation_axis_y;
+            return .{ .x = res_x, .y = res_y };
+        },
+        .Left => {
+            const res_x = rotation_axis_x - y_diff;
+            const res_y = rotation_axis_y + x_diff;
+            return .{ .x = res_x, .y = res_y };
+        },
+    };
+}
+
+test "can_rotate_point_right" {
+    //
+    //  O
+    //
+    //
+    const rotated_point = rotate_point(0, 0, 1, 1, helpers.Direction.Right);
+    std.debug.print("Rotated: {}\n", .{rotated_point});
+    try std.testing.expect(rotated_point.x == 2 and rotated_point.y == 0);
+}
+
+test "can_rotate_point_right_v2" {
+    // 0 1 2 3 4
+    // 1   O
+    // 2 X
+    // 3
+    const rotated_point = rotate_point(1, 2, 2, 1, helpers.Direction.Right);
+    std.debug.print("Rotated: {}\n", .{rotated_point});
+    try std.testing.expect(rotated_point.x == 1 and rotated_point.y == 0);
+}
+test "can_rotate_point_down_v2" {
+    // 0 1 2 3 4
+    // 1   O
+    // 2 X
+    // 3
+    const rotated_point = rotate_point(1, 2, 2, 1, helpers.Direction.Down);
+    std.debug.print("Rotated: {}\n", .{rotated_point});
+    try std.testing.expect(rotated_point.x == 3 and rotated_point.y == 0);
+}
+test "can_rotate_point_left_v2" {
+    // 0 1 2 3 4
+    // 1   O
+    // 2 X
+    // 3
+    const rotated_point = rotate_point(1, 2, 2, 1, helpers.Direction.Left);
+    std.debug.print("Rotated: {}\n", .{rotated_point});
+    try std.testing.expect(rotated_point.x == 3 and rotated_point.y == 2);
+}
+test "can_rotate_point_up_v2" {
+    // 0 1 2 3 4
+    // 1   O
+    // 2 X
+    // 3
+    const rotated_point = rotate_point(1, 2, 2, 1, helpers.Direction.Up);
+    std.debug.print("Rotated: {}\n", .{rotated_point});
+    try std.testing.expect(rotated_point.x == 1 and rotated_point.y == 2);
+}
