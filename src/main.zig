@@ -54,6 +54,7 @@ pub fn main() !void {
             rendering.display.c.SDL_Quit();
             break :gameloop;
         };
+
         for (entities[0..last_entity_ptr]) |entity| {
             entity.update(keys_pressed);
         }

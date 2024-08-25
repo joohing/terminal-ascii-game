@@ -7,6 +7,7 @@ pub const Sprite = struct {
     data: []const u8,
     stride_length: u8,
     headers: Headers,
+    curr_frame: []u8,
 };
 
 pub const SpriteCollection = struct {{'{'}}
@@ -105,9 +106,9 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     });
 
     const {{sprite_name}}_content_padded = try allocator.alloc(u8, @intCast({{sprite_name}}_padded_file_size));
-    std.debug.print("Padding buffer {{sprite_name}}:\n{s}\n", .{ {{sprite_name}}_content });
     right_pad_sprite({{sprite_name}}_content_padded, {{sprite_name}}_content, {{sprite_name}}_stride);
-    std.debug.print("Chars after padding:\n{s}\n", .{ {{sprite_name}}_content_padded });
+
+    const {{sprite_name}}_bytes_per_frame = {{sprite_name}}_stride * {{sprite_name}}_header.lines_per_frame;
 
     {% endfor %}
 
@@ -116,6 +117,7 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
             .data={{sprite_name}}_content_padded,
             .stride_length=@intCast({{sprite_name}}_stride),
             .headers={{sprite_name}}_header,
+            .curr_frame={{sprite_name}}_content_padded[0..{{sprite_name}}_bytes_per_frame],
         },
     {% endfor %}
     {{'}'}};

@@ -30,6 +30,11 @@ pub fn get_curr_sprite(entity: *Entity) *const rendering.sprites.Sprite {
     return self.sprite;
 }
 
+pub fn get_curr_frame(entity: *Entity) []u8 {
+    const self: *PlayerEntity = @fieldParentPtr("entity", entity);
+    return self.sprite.curr_frame;
+}
+
 pub fn update(entity: *Entity, keys_pressed: *const [256]bool) void {
     const self: *PlayerEntity = @fieldParentPtr("entity", entity);
     if (keys_pressed[c.SDL_SCANCODE_S]) {

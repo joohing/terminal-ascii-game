@@ -7,6 +7,7 @@ pub const Sprite = struct {
     data: []const u8,
     stride_length: u8,
     headers: Headers,
+    curr_frame: []u8,
 };
 
 pub const SpriteCollection = struct {
@@ -127,9 +128,9 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     std.debug.print("Size allocated: {d} x {d} = {d} for sprite: TEST\n", .{ TEST_stride, TEST_newline_count, TEST_padded_file_size });
 
     const TEST_content_padded = try allocator.alloc(u8, @intCast(TEST_padded_file_size));
-    std.debug.print("Padding buffer TEST:\n{s}\n", .{TEST_content});
     right_pad_sprite(TEST_content_padded, TEST_content, TEST_stride);
-    std.debug.print("Chars after padding:\n{s}\n", .{TEST_content_padded});
+
+    const TEST_bytes_per_frame = TEST_stride * TEST_header.lines_per_frame;
 
     const jonathan_file = try std.fs.cwd().openFile("assets/sprites/jonathan.sprite", .{});
     const jonathan_file_size: u64 = (try jonathan_file.stat()).size;
@@ -163,9 +164,9 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     std.debug.print("Size allocated: {d} x {d} = {d} for sprite: jonathan\n", .{ jonathan_stride, jonathan_newline_count, jonathan_padded_file_size });
 
     const jonathan_content_padded = try allocator.alloc(u8, @intCast(jonathan_padded_file_size));
-    std.debug.print("Padding buffer jonathan:\n{s}\n", .{jonathan_content});
     right_pad_sprite(jonathan_content_padded, jonathan_content, jonathan_stride);
-    std.debug.print("Chars after padding:\n{s}\n", .{jonathan_content_padded});
+
+    const jonathan_bytes_per_frame = jonathan_stride * jonathan_header.lines_per_frame;
 
     const MONSTER_1_file = try std.fs.cwd().openFile("assets/sprites/MONSTER_1.sprite", .{});
     const MONSTER_1_file_size: u64 = (try MONSTER_1_file.stat()).size;
@@ -199,9 +200,9 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     std.debug.print("Size allocated: {d} x {d} = {d} for sprite: MONSTER_1\n", .{ MONSTER_1_stride, MONSTER_1_newline_count, MONSTER_1_padded_file_size });
 
     const MONSTER_1_content_padded = try allocator.alloc(u8, @intCast(MONSTER_1_padded_file_size));
-    std.debug.print("Padding buffer MONSTER_1:\n{s}\n", .{MONSTER_1_content});
     right_pad_sprite(MONSTER_1_content_padded, MONSTER_1_content, MONSTER_1_stride);
-    std.debug.print("Chars after padding:\n{s}\n", .{MONSTER_1_content_padded});
+
+    const MONSTER_1_bytes_per_frame = MONSTER_1_stride * MONSTER_1_header.lines_per_frame;
 
     const er_file = try std.fs.cwd().openFile("assets/sprites/er.sprite", .{});
     const er_file_size: u64 = (try er_file.stat()).size;
@@ -235,9 +236,9 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     std.debug.print("Size allocated: {d} x {d} = {d} for sprite: er\n", .{ er_stride, er_newline_count, er_padded_file_size });
 
     const er_content_padded = try allocator.alloc(u8, @intCast(er_padded_file_size));
-    std.debug.print("Padding buffer er:\n{s}\n", .{er_content});
     right_pad_sprite(er_content_padded, er_content, er_stride);
-    std.debug.print("Chars after padding:\n{s}\n", .{er_content_padded});
+
+    const er_bytes_per_frame = er_stride * er_header.lines_per_frame;
 
     const dum_file = try std.fs.cwd().openFile("assets/sprites/dum.sprite", .{});
     const dum_file_size: u64 = (try dum_file.stat()).size;
@@ -271,39 +272,44 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     std.debug.print("Size allocated: {d} x {d} = {d} for sprite: dum\n", .{ dum_stride, dum_newline_count, dum_padded_file_size });
 
     const dum_content_padded = try allocator.alloc(u8, @intCast(dum_padded_file_size));
-    std.debug.print("Padding buffer dum:\n{s}\n", .{dum_content});
     right_pad_sprite(dum_content_padded, dum_content, dum_stride);
-    std.debug.print("Chars after padding:\n{s}\n", .{dum_content_padded});
+
+    const dum_bytes_per_frame = dum_stride * dum_header.lines_per_frame;
 
     const collection = SpriteCollection{
         .TEST = Sprite{
             .data = TEST_content_padded,
             .stride_length = @intCast(TEST_stride),
             .headers = TEST_header,
+            .curr_frame = TEST_content_padded[0..TEST_bytes_per_frame],
         },
 
         .jonathan = Sprite{
             .data = jonathan_content_padded,
             .stride_length = @intCast(jonathan_stride),
             .headers = jonathan_header,
+            .curr_frame = jonathan_content_padded[0..jonathan_bytes_per_frame],
         },
 
         .MONSTER_1 = Sprite{
             .data = MONSTER_1_content_padded,
             .stride_length = @intCast(MONSTER_1_stride),
             .headers = MONSTER_1_header,
+            .curr_frame = MONSTER_1_content_padded[0..MONSTER_1_bytes_per_frame],
         },
 
         .er = Sprite{
             .data = er_content_padded,
             .stride_length = @intCast(er_stride),
             .headers = er_header,
+            .curr_frame = er_content_padded[0..er_bytes_per_frame],
         },
 
         .dum = Sprite{
             .data = dum_content_padded,
             .stride_length = @intCast(dum_stride),
             .headers = dum_header,
+            .curr_frame = dum_content_padded[0..dum_bytes_per_frame],
         },
     };
 

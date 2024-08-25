@@ -16,7 +16,7 @@ pub fn render(
 
     // std.debug.print("Starting render {}...\n", .{sprite});
     const window_height = render_buffer.chars.len / window_width;
-    for (sprite.data, 0..) |pixel, index| {
+    for (sprite.curr_frame, 0..) |pixel, index| {
         if (pixel == 32) {
             continue;
         }
