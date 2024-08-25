@@ -73,10 +73,6 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     const {{sprite_name}}_content_padded = try allocator.alloc(u8, @intCast({{sprite_name}}_padded_file_size));
     right_pad_sprite({{sprite_name}}_content_padded, {{sprite_name}}_content, {{sprite_name}}_stride);
 
-    std.debug.print("After padding, chars are ... {s}\n", .{
-        {{sprite_name}}_content_padded
-    });
-
     _ = std.mem.replace(u8, {{sprite_name}}_content, "\n", "", {{sprite_name}}_content);
 
     {% endfor %}

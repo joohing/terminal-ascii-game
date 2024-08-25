@@ -61,8 +61,7 @@ pub fn main() !void {
         std.time.sleep(@intCast(sleep_time));
         const nanos_elapsed = std.time.nanoTimestamp() - prev_frame;
         const millis_elapsed: i32 = @intFromFloat(@as(f32, @floatFromInt(nanos_elapsed)) / @as(f32, @floatFromInt(1000000)));
-        _ = millis_elapsed;
-        // std.debug.print("Frametime: {}ms\n", .{millis_elapsed});
+        std.debug.print("Frametime: {}ms\n", .{millis_elapsed});
         prev_frame = std.time.nanoTimestamp();
         next_frame = prev_frame + time_per_frame;
 
