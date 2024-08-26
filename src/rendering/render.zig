@@ -22,10 +22,9 @@ pub fn render(
         }
         const px_x = @as(i32, @intCast(index % sprite.stride_length));
         const px_y = @as(i32, @intCast(index / sprite.stride_length));
-        const rel_coords = rotate_point(px_x, px_y, sprite.headers.center_of_rotation_x, sprite.headers.center_of_rotation_y, rel_rotation);
+        const rel_coords = helpers.rotate_point(px_x, px_y, sprite.headers.center_of_rotation_x, sprite.headers.center_of_rotation_y, rel_rotation);
 
         const abs_coords = .{ .x = rel_coords.x + x - sprite.headers.center_of_rotation_x, .y = rel_coords.y + y - sprite.headers.center_of_rotation_y };
-        std.debug.print("coords: {}\n", .{abs_coords});
 
         const buffer_index = abs_coords.x + abs_coords.y * @as(i32, @intCast(window_width));
         if (abs_coords.x >= 0 and abs_coords.y >= 0 and abs_coords.x < window_width and abs_coords.y < window_height) {
@@ -33,6 +32,52 @@ pub fn render(
             render_buffer.rotation[@intCast(buffer_index)] = rel_rotation;
         }
     }
+}
+
+pub fn render_rect(
+    rect: helpers.Rect,
+    char: u8,
+    window_width: u8,
+    render_buffer: *common.RenderBuffer,
+) void {
+    // rect.x and rect.y might be negative, so we do a @max computation aswell
+    const rect_x = rect.x;
+    const rect_y = rect.y;
+    const rect_w = rect.w;
+    const rect_h = rect.h;
+
+    var x: i32 = rect_x;
+    while (x < rect_x + rect_w + 1) : (x += 1) {
+        if (in_range(x, 0, window_width - 1) and in_range(rect_y, 0, @intCast(render_buffer.chars.len / window_width - 1))) {
+            const ind_1 = x + rect_y * window_width;
+            render_buffer.chars[@intCast(ind_1)] = char;
+            render_buffer.rotation[@intCast(ind_1)] = helpers.Direction.Up;
+        }
+        if (in_range(x, 0, window_width - 1) and in_range(rect_y + rect_h, 0, @intCast(render_buffer.chars.len / window_width - 1))) {
+            const ind_2 = x + (rect_y + rect_h) * window_width;
+
+            render_buffer.chars[@intCast(ind_2)] = char;
+            render_buffer.rotation[@intCast(ind_2)] = helpers.Direction.Up;
+        }
+    }
+    var y: i32 = rect_y;
+    while (y < rect_y + rect_h + 1) : (y += 1) {
+        if (in_range(rect_x, 0, window_width - 1) and in_range(y, 0, @intCast(render_buffer.chars.len / window_width - 1))) {
+            const ind_1 = rect_x + y * window_width;
+            render_buffer.chars[@intCast(ind_1)] = char;
+            render_buffer.rotation[@intCast(ind_1)] = helpers.Direction.Up;
+        }
+
+        if (in_range(rect_x + rect_w, 0, window_width - 1) and in_range(y, 0, @intCast(render_buffer.chars.len / window_width - 1))) {
+            const ind_2 = rect_x + rect_w + y * window_width;
+            render_buffer.chars[@intCast(ind_2)] = char;
+            render_buffer.rotation[@intCast(ind_2)] = helpers.Direction.Up;
+        }
+    }
+}
+
+fn in_range(val: i32, lower: i32, upper: i32) bool {
+    return val >= lower and val <= upper;
 }
 
 pub fn render_0(render_buffer: []u8) void {
@@ -102,74 +147,3 @@ fn pretty_print(buffer: []u8, comptime window_width: u8) void {
 //     // pretty_print(&buffer, 10);
 //     try std.testing.expectEqualStrings("- -                 ", buffer[0..20]);
 // }
-
-fn rotate_point(px: i32, py: i32, rotation_axis_x: i32, rotation_axis_y: i32, rotation: helpers.Direction) struct { x: i32, y: i32 } {
-    const x_diff = rotation_axis_x - px;
-    const y_diff = rotation_axis_y - py;
-    //2,0
-    return switch (rotation) {
-        .Up => .{ .x = px, .y = py },
-        .Right => {
-            const res_x = rotation_axis_x + y_diff;
-            const res_y = rotation_axis_y - x_diff;
-            return .{ .x = res_x, .y = res_y };
-        },
-        .Down => {
-            const res_x = x_diff + rotation_axis_x;
-            const res_y = y_diff + rotation_axis_y;
-            return .{ .x = res_x, .y = res_y };
-        },
-        .Left => {
-            const res_x = rotation_axis_x - y_diff;
-            const res_y = rotation_axis_y + x_diff;
-            return .{ .x = res_x, .y = res_y };
-        },
-    };
-}
-
-test "can_rotate_point_right" {
-    //
-    //  O
-    //
-    //
-    const rotated_point = rotate_point(0, 0, 1, 1, helpers.Direction.Right);
-    std.debug.print("Rotated: {}\n", .{rotated_point});
-    try std.testing.expect(rotated_point.x == 2 and rotated_point.y == 0);
-}
-
-test "can_rotate_point_right_v2" {
-    // 0 1 2 3 4
-    // 1   O
-    // 2 X
-    // 3
-    const rotated_point = rotate_point(1, 2, 2, 1, helpers.Direction.Right);
-    std.debug.print("Rotated: {}\n", .{rotated_point});
-    try std.testing.expect(rotated_point.x == 1 and rotated_point.y == 0);
-}
-test "can_rotate_point_down_v2" {
-    // 0 1 2 3 4
-    // 1   O
-    // 2 X
-    // 3
-    const rotated_point = rotate_point(1, 2, 2, 1, helpers.Direction.Down);
-    std.debug.print("Rotated: {}\n", .{rotated_point});
-    try std.testing.expect(rotated_point.x == 3 and rotated_point.y == 0);
-}
-test "can_rotate_point_left_v2" {
-    // 0 1 2 3 4
-    // 1   O
-    // 2 X
-    // 3
-    const rotated_point = rotate_point(1, 2, 2, 1, helpers.Direction.Left);
-    std.debug.print("Rotated: {}\n", .{rotated_point});
-    try std.testing.expect(rotated_point.x == 3 and rotated_point.y == 2);
-}
-test "can_rotate_point_up_v2" {
-    // 0 1 2 3 4
-    // 1   O
-    // 2 X
-    // 3
-    const rotated_point = rotate_point(1, 2, 2, 1, helpers.Direction.Up);
-    std.debug.print("Rotated: {}\n", .{rotated_point});
-    try std.testing.expect(rotated_point.x == 1 and rotated_point.y == 2);
-}

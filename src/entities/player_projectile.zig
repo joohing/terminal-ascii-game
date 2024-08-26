@@ -1,5 +1,6 @@
 const std = @import("std");
 const Entity = @import("entity.zig").Entity;
+const rect_from_entity_and_sprite = @import("entity.zig").rect_from_entity_and_sprite;
 const GameState = @import("helpers.zig").GameState;
 const rendering = @import("rendering");
 const helpers = @import("helpers");
@@ -22,6 +23,7 @@ pub const PlayerProjectileEntity = struct {
             start_x,
             start_y,
             direction,
+            null,
         );
 
         return PlayerProjectileEntity{
@@ -46,7 +48,9 @@ pub fn update(entity: *Entity, game_state: *GameState) void {
         helpers.Direction.Down => self.entity.y += self.speed,
         helpers.Direction.Left => self.entity.x -= self.speed,
     }
+    self.entity.collider = rect_from_entity_and_sprite(self.sprite, &self.entity);
     if (self.end_of_life <= std.time.milliTimestamp()) {
         game_state.entity_manager.remove_entity(self.entity.id) catch unreachable;
+        return;
     }
 }

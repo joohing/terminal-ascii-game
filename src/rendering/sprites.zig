@@ -29,7 +29,7 @@ const SpriteLoadError = error{
     NoNewline,
 };
 
-const Headers = struct {
+pub const Headers = struct {
     rotation: helpers.Direction,
     center_of_rotation_x: u8,
     center_of_rotation_y: u8,

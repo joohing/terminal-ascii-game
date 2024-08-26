@@ -1,5 +1,6 @@
 const std = @import("std");
 const Entity = @import("entity.zig").Entity;
+const rect_from_entity_and_sprite = @import("entity.zig").rect_from_entity_and_sprite;
 const GameState = @import("helpers.zig").GameState;
 const PlayerProjectileEntity = @import("player_projectile.zig").PlayerProjectileEntity;
 const entity_manager = @import("entity_manager.zig");
@@ -17,17 +18,21 @@ pub const PlayerEntity = struct {
     last_projectile_shot_ms: ?i64,
 
     pub fn init(start_x: i32, start_y: i32, sprite_collection: *const rendering.sprites.SpriteCollection) PlayerEntity {
-        const entity = Entity.init(
+        const sprite = &sprite_collection.player;
+        var entity = Entity.init(
             update,
             get_curr_sprite,
             start_x,
             start_y,
             helpers.Direction.Up,
+            null,
         );
+        const collider = rect_from_entity_and_sprite(&sprite_collection.player, &entity);
+        entity.collider = collider;
 
         return PlayerEntity{
             .entity = entity,
-            .sprite = &sprite_collection.player,
+            .sprite = sprite,
             .last_projectile_shot_ms = null,
         };
     }
@@ -45,6 +50,25 @@ pub const PlayerEntity = struct {
 
 pub fn get_curr_sprite(entity: *Entity) *const rendering.sprites.Sprite {
     const self: *PlayerEntity = @fieldParentPtr("entity", entity);
+    // const slice: []const rendering.sprites.Sprite = &.{self.sprite.*};
+    // var s: rendering.sprites.Sprite = (std.heap.page_allocator.dupe(rendering.sprites.Sprite, slice) catch @panic("Could not allocate for sprite"))[0];
+    // const coll = self.entity.collider.?;
+    // var new_data = (std.heap.page_allocator.dupe(u8, s.data) catch @panic("Could not allocate data"));
+    // s.data = new_data;
+
+    // const coll_w: usize = @intCast(coll.w);
+    // const coll_h: usize = @intCast(coll.h);
+
+    // for (0..coll_h - 1) |y| {
+    //     new_data[y * s.stride_length] = 46;
+    //     new_data[y * s.stride_length + s.stride_length - 1] = 46;
+    // }
+    // for (0..coll_w - 1) |x| {
+    //     new_data[x] = 46;
+    //     new_data[x + (coll_h - 1) * s.stride_length] = 46;
+    // }
+    std.debug.print("Current position: ({}, {})\n", .{ self.entity.x, self.entity.y });
+    std.debug.print("Current collider: ({})\n", .{self.entity.collider.?});
     return self.sprite;
 }
 
@@ -77,4 +101,5 @@ pub fn update(entity: *Entity, game_state: *GameState) void {
         };
         self.last_projectile_shot_ms = std.time.milliTimestamp();
     }
+    self.entity.collider = rect_from_entity_and_sprite(self.sprite, &self.entity);
 }
