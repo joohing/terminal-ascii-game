@@ -1,5 +1,6 @@
 const std = @import("std");
 const Entity = @import("entity.zig").Entity;
+const rect_from_entity_and_sprite = @import("entity.zig").rect_from_entity_and_sprite;
 const GameState = @import("helpers.zig").GameState;
 const rendering = @import("rendering");
 const helpers = @import("helpers");
@@ -28,6 +29,7 @@ pub const EnemyEntity = struct {
             start_x,
             start_y,
             helpers.Direction.Up,
+            null,
         );
 
         return EnemyEntity{
@@ -64,4 +66,5 @@ pub fn update(entity: *Entity, _: *GameState) void {
             self.entity.x -= 1;
         },
     }
+    self.entity.collider = rect_from_entity_and_sprite(self.sprite, &self.entity);
 }
