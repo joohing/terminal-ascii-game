@@ -76,7 +76,6 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
         return SpriteLoadError.NoNewline;
     }
     const {{sprite_name}}_header_content = {{sprite_name}}_content[0..find_first_newline({{sprite_name}}_content)];
-    std.debug.print("First newline for {{sprite_name}}: {{'{}'}}", .{{'{'}}find_first_newline({{sprite_name}}_content){{'}'}});
     {{sprite_name}}_content = {{sprite_name}}_content[find_first_newline({{sprite_name}}_content)+1..];
     const {{sprite_name}}_header = Headers.init({{sprite_name}}_header_content) catch |e| {{'{'}}
         std.debug.print("Failed loading headers for file '{{sprite_name}}.sprite'. Header content: {{'{'}}s{{'}'}}\n", .{{'{'}}{{sprite_name}}_header_content{{'}'}});

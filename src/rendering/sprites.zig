@@ -10,11 +10,12 @@ pub const Sprite = struct {
 };
 
 pub const SpriteCollection = struct {
-    TEST: Sprite,
     jonathan: Sprite,
+    player: Sprite,
     MONSTER_1: Sprite,
     er: Sprite,
     dum: Sprite,
+    player_projectile: Sprite,
 };
 
 const HeaderInitError = error{
@@ -82,29 +83,6 @@ const Headers = struct {
 };
 
 pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
-    const TEST_file = try std.fs.cwd().openFile("assets/sprites/TEST.sprite", .{});
-    const TEST_file_size: u64 = (try TEST_file.stat()).size;
-    var TEST_content = try allocator.alloc(u8, @intCast(TEST_file_size));
-    _ = try TEST_file.read(TEST_content);
-    if (TEST_content[TEST_content.len - 1] != '\n') {
-        std.debug.print("Sprite 'TEST.sprite' must end in a newline\n", .{});
-        return SpriteLoadError.NoNewline;
-    }
-    const TEST_header_content = TEST_content[0..find_first_newline(TEST_content)];
-    std.debug.print("First newline for TEST: {}", .{find_first_newline(TEST_content)});
-    TEST_content = TEST_content[find_first_newline(TEST_content) + 1 ..];
-    const TEST_header = Headers.init(TEST_header_content) catch |e| {
-        std.debug.print("Failed loading headers for file 'TEST.sprite'. Header content: {s}\n", .{TEST_header_content});
-        return e;
-    };
-    if (TEST_content.len == 0) {
-        std.debug.print("Sprite 'TEST.sprite' with header '{}'' has no content.\n", .{TEST_header});
-        return SpriteLoadError.EmptySprite;
-    }
-    const TEST_stride = find_first_newline(TEST_content);
-    const TEST_newline_count = std.mem.replace(u8, TEST_content, "\n", "", TEST_content);
-    TEST_content = TEST_content[0 .. TEST_content.len - TEST_newline_count];
-
     const jonathan_file = try std.fs.cwd().openFile("assets/sprites/jonathan.sprite", .{});
     const jonathan_file_size: u64 = (try jonathan_file.stat()).size;
     var jonathan_content = try allocator.alloc(u8, @intCast(jonathan_file_size));
@@ -114,7 +92,6 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
         return SpriteLoadError.NoNewline;
     }
     const jonathan_header_content = jonathan_content[0..find_first_newline(jonathan_content)];
-    std.debug.print("First newline for jonathan: {}", .{find_first_newline(jonathan_content)});
     jonathan_content = jonathan_content[find_first_newline(jonathan_content) + 1 ..];
     const jonathan_header = Headers.init(jonathan_header_content) catch |e| {
         std.debug.print("Failed loading headers for file 'jonathan.sprite'. Header content: {s}\n", .{jonathan_header_content});
@@ -128,6 +105,28 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     const jonathan_newline_count = std.mem.replace(u8, jonathan_content, "\n", "", jonathan_content);
     jonathan_content = jonathan_content[0 .. jonathan_content.len - jonathan_newline_count];
 
+    const player_file = try std.fs.cwd().openFile("assets/sprites/player.sprite", .{});
+    const player_file_size: u64 = (try player_file.stat()).size;
+    var player_content = try allocator.alloc(u8, @intCast(player_file_size));
+    _ = try player_file.read(player_content);
+    if (player_content[player_content.len - 1] != '\n') {
+        std.debug.print("Sprite 'player.sprite' must end in a newline\n", .{});
+        return SpriteLoadError.NoNewline;
+    }
+    const player_header_content = player_content[0..find_first_newline(player_content)];
+    player_content = player_content[find_first_newline(player_content) + 1 ..];
+    const player_header = Headers.init(player_header_content) catch |e| {
+        std.debug.print("Failed loading headers for file 'player.sprite'. Header content: {s}\n", .{player_header_content});
+        return e;
+    };
+    if (player_content.len == 0) {
+        std.debug.print("Sprite 'player.sprite' with header '{}'' has no content.\n", .{player_header});
+        return SpriteLoadError.EmptySprite;
+    }
+    const player_stride = find_first_newline(player_content);
+    const player_newline_count = std.mem.replace(u8, player_content, "\n", "", player_content);
+    player_content = player_content[0 .. player_content.len - player_newline_count];
+
     const MONSTER_1_file = try std.fs.cwd().openFile("assets/sprites/MONSTER_1.sprite", .{});
     const MONSTER_1_file_size: u64 = (try MONSTER_1_file.stat()).size;
     var MONSTER_1_content = try allocator.alloc(u8, @intCast(MONSTER_1_file_size));
@@ -137,7 +136,6 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
         return SpriteLoadError.NoNewline;
     }
     const MONSTER_1_header_content = MONSTER_1_content[0..find_first_newline(MONSTER_1_content)];
-    std.debug.print("First newline for MONSTER_1: {}", .{find_first_newline(MONSTER_1_content)});
     MONSTER_1_content = MONSTER_1_content[find_first_newline(MONSTER_1_content) + 1 ..];
     const MONSTER_1_header = Headers.init(MONSTER_1_header_content) catch |e| {
         std.debug.print("Failed loading headers for file 'MONSTER_1.sprite'. Header content: {s}\n", .{MONSTER_1_header_content});
@@ -160,7 +158,6 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
         return SpriteLoadError.NoNewline;
     }
     const er_header_content = er_content[0..find_first_newline(er_content)];
-    std.debug.print("First newline for er: {}", .{find_first_newline(er_content)});
     er_content = er_content[find_first_newline(er_content) + 1 ..];
     const er_header = Headers.init(er_header_content) catch |e| {
         std.debug.print("Failed loading headers for file 'er.sprite'. Header content: {s}\n", .{er_header_content});
@@ -183,7 +180,6 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
         return SpriteLoadError.NoNewline;
     }
     const dum_header_content = dum_content[0..find_first_newline(dum_content)];
-    std.debug.print("First newline for dum: {}", .{find_first_newline(dum_content)});
     dum_content = dum_content[find_first_newline(dum_content) + 1 ..];
     const dum_header = Headers.init(dum_header_content) catch |e| {
         std.debug.print("Failed loading headers for file 'dum.sprite'. Header content: {s}\n", .{dum_header_content});
@@ -197,17 +193,39 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     const dum_newline_count = std.mem.replace(u8, dum_content, "\n", "", dum_content);
     dum_content = dum_content[0 .. dum_content.len - dum_newline_count];
 
-    const collection = SpriteCollection{
-        .TEST = Sprite{
-            .data = TEST_content,
-            .stride_length = @intCast(TEST_stride),
-            .headers = TEST_header,
-        },
+    const player_projectile_file = try std.fs.cwd().openFile("assets/sprites/player_projectile.sprite", .{});
+    const player_projectile_file_size: u64 = (try player_projectile_file.stat()).size;
+    var player_projectile_content = try allocator.alloc(u8, @intCast(player_projectile_file_size));
+    _ = try player_projectile_file.read(player_projectile_content);
+    if (player_projectile_content[player_projectile_content.len - 1] != '\n') {
+        std.debug.print("Sprite 'player_projectile.sprite' must end in a newline\n", .{});
+        return SpriteLoadError.NoNewline;
+    }
+    const player_projectile_header_content = player_projectile_content[0..find_first_newline(player_projectile_content)];
+    player_projectile_content = player_projectile_content[find_first_newline(player_projectile_content) + 1 ..];
+    const player_projectile_header = Headers.init(player_projectile_header_content) catch |e| {
+        std.debug.print("Failed loading headers for file 'player_projectile.sprite'. Header content: {s}\n", .{player_projectile_header_content});
+        return e;
+    };
+    if (player_projectile_content.len == 0) {
+        std.debug.print("Sprite 'player_projectile.sprite' with header '{}'' has no content.\n", .{player_projectile_header});
+        return SpriteLoadError.EmptySprite;
+    }
+    const player_projectile_stride = find_first_newline(player_projectile_content);
+    const player_projectile_newline_count = std.mem.replace(u8, player_projectile_content, "\n", "", player_projectile_content);
+    player_projectile_content = player_projectile_content[0 .. player_projectile_content.len - player_projectile_newline_count];
 
+    const collection = SpriteCollection{
         .jonathan = Sprite{
             .data = jonathan_content,
             .stride_length = @intCast(jonathan_stride),
             .headers = jonathan_header,
+        },
+
+        .player = Sprite{
+            .data = player_content,
+            .stride_length = @intCast(player_stride),
+            .headers = player_header,
         },
 
         .MONSTER_1 = Sprite{
@@ -226,6 +244,12 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
             .data = dum_content,
             .stride_length = @intCast(dum_stride),
             .headers = dum_header,
+        },
+
+        .player_projectile = Sprite{
+            .data = player_projectile_content,
+            .stride_length = @intCast(player_projectile_stride),
+            .headers = player_projectile_header,
         },
     };
     std.debug.print("Loaded sprites: {}\n", .{collection});

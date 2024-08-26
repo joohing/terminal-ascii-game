@@ -8,6 +8,9 @@ const helpers = @import("helpers");
 const Entity = @import("entities").entity.Entity;
 const PlayerEntity = @import("entities").player_entity.PlayerEntity;
 const EnemyEntity = @import("entities").enemy_entity.EnemyEntity;
+const EntityManager = @import("entities").entity_manager.EntityManager;
+const EntityType = @import("entities").entity_manager.EntityType;
+const GameState = @import("entities").helpers.GameState;
 
 pub fn main() !void {
     var allocator = std.heap.page_allocator;
@@ -27,13 +30,12 @@ pub fn main() !void {
 
     var prev_frame = std.time.nanoTimestamp();
     var next_frame = prev_frame + time_per_frame;
-    var player_entity = PlayerEntity.init(10, 20, &collection);
-    var enemy_entity = EnemyEntity.init(20, 20, &collection);
-    var entities: [256]*Entity = .{undefined} ** 256;
-    entities[0] = &player_entity.entity;
-    entities[1] = &enemy_entity.entity;
+    const player_entity: EntityType = .{ .player = PlayerEntity.init(10, 20, &collection) };
+    const enemy_entity: EntityType = .{ .enemy = EnemyEntity.init(20, 20, &collection) };
 
-    const last_entity_ptr: u32 = 2;
+    var entity_manager = EntityManager.init();
+    try entity_manager.register_entity(player_entity);
+    try entity_manager.register_entity(enemy_entity);
 
     gameloop: while (true) {
         iter += 1;
@@ -53,16 +55,20 @@ pub fn main() !void {
             rendering.display.c.SDL_Quit();
             break :gameloop;
         };
-        for (entities[0..last_entity_ptr]) |entity| {
-            entity.update(keys_pressed);
-        }
+        var game_state = GameState{
+            .keys_pressed = keys_pressed,
+            .entity_manager = &entity_manager,
+            .sprite_collection = &collection,
+        };
 
-        for (entities[0..last_entity_ptr]) |entity| {
+        try entity_manager.update(&game_state);
+        var entity_buffer: [128]*Entity = undefined;
+        for (entity_manager.get_all_entities(&entity_buffer)) |*entity| {
             rendering.render.render(
-                entity.get_curr_sprite(),
-                entity.x,
-                entity.y,
-                entity.rotation,
+                entity.*.get_curr_sprite(),
+                entity.*.x,
+                entity.*.y,
+                entity.*.rotation,
                 helpers.constants.WINDOW_WIDTH,
                 &render_buffer,
             );
