@@ -8,11 +8,6 @@ pub fn concat_strs(s1: []const u8, s2: []const u8, dest: *[DEST_BUFFER_SIZE]u8, 
     std.mem.copyForwards(u8, dest[buffer_start + s1.len ..], s2);
 }
 
-// pub fn concat_3_strs(s1: []const u8, s2: []const u8, s3: []const u8, dest: *[DEST_BUFFER_SIZE]u8) void {
-//     std.mem.copyForwards(u8, dest, s1);
-//     std.mem.copyForwards(u8, dest[s1.len..], s2);
-// }
-
 pub const Direction = enum {
     Up,
     Right,

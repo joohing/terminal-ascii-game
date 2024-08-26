@@ -50,16 +50,6 @@ pub fn render_random(render_buffer: []u8) void {
     }
 }
 
-const GameState = struct {
-    situation: Situation,
-};
-
-const Situation = enum(u8) {
-    STARTUP = 0,
-    STARTMENU = 1,
-    GAMEPLAY = 2,
-};
-
 fn pretty_print(buffer: []u8, comptime window_width: u8) void {
     var curr_start: u8 = 0;
 

@@ -1,5 +1,6 @@
 const std = @import("std");
 const Entity = @import("entity.zig").Entity;
+const GameState = @import("helpers.zig").GameState;
 const rendering = @import("rendering");
 const helpers = @import("helpers");
 const c = @cImport({
@@ -39,11 +40,10 @@ pub const EnemyEntity = struct {
 
 pub fn get_curr_sprite(entity: *Entity) *const rendering.sprites.Sprite {
     const self: *EnemyEntity = @fieldParentPtr("entity", entity);
-
     return self.sprite;
 }
 
-pub fn update(entity: *Entity, _: *const [256]bool) void {
+pub fn update(entity: *Entity, _: *GameState) void {
     const self: *EnemyEntity = @fieldParentPtr("entity", entity);
     self.frames_until_change_dir = self.frames_until_change_dir - 1;
     if (self.frames_until_change_dir == 0) {
