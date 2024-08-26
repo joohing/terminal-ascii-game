@@ -19,7 +19,7 @@ pub const PlayerEntity = struct {
 
     pub fn init(start_x: i32, start_y: i32, sprite_collection: *const rendering.sprites.SpriteCollection) PlayerEntity {
         const sprite = &sprite_collection.player;
-        var entity = Entity.init(
+        const entity = Entity.init(
             update,
             get_curr_sprite,
             start_x,
@@ -27,8 +27,6 @@ pub const PlayerEntity = struct {
             helpers.Direction.Up,
             null,
         );
-        const collider = rect_from_entity_and_sprite(&sprite_collection.player, &entity);
-        entity.collider = collider;
 
         return PlayerEntity{
             .entity = entity,
