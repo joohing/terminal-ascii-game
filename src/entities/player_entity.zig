@@ -48,25 +48,6 @@ pub const PlayerEntity = struct {
 
 pub fn get_curr_sprite(entity: *Entity) *const rendering.sprites.Sprite {
     const self: *PlayerEntity = @fieldParentPtr("entity", entity);
-    // const slice: []const rendering.sprites.Sprite = &.{self.sprite.*};
-    // var s: rendering.sprites.Sprite = (std.heap.page_allocator.dupe(rendering.sprites.Sprite, slice) catch @panic("Could not allocate for sprite"))[0];
-    // const coll = self.entity.collider.?;
-    // var new_data = (std.heap.page_allocator.dupe(u8, s.data) catch @panic("Could not allocate data"));
-    // s.data = new_data;
-
-    // const coll_w: usize = @intCast(coll.w);
-    // const coll_h: usize = @intCast(coll.h);
-
-    // for (0..coll_h - 1) |y| {
-    //     new_data[y * s.stride_length] = 46;
-    //     new_data[y * s.stride_length + s.stride_length - 1] = 46;
-    // }
-    // for (0..coll_w - 1) |x| {
-    //     new_data[x] = 46;
-    //     new_data[x + (coll_h - 1) * s.stride_length] = 46;
-    // }
-    std.debug.print("Current position: ({}, {})\n", .{ self.entity.x, self.entity.y });
-    std.debug.print("Current collider: ({})\n", .{self.entity.collider.?});
     return self.sprite;
 }
 
