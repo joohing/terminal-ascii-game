@@ -7,3 +7,6 @@ zig-cache/*
 .zig-cache/*
 .vscode/settings.json
 scripts/.DS_Store
+
+# Jona Den Seje Tand's python venv
+venv/*

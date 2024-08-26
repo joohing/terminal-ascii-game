@@ -20,7 +20,7 @@ pub const SpriteCollection = struct {{'{'}}
 const HeaderInitError = error{{'{'}}
     InvalidNumberOfArgs,
     IncorrectArgumentType,
-    UnexpectedRotation,    
+    UnexpectedRotation,
 {{'}'}};
 const SpriteLoadError = error{{'{'}}
     InvalidNumberOfArgs,
@@ -65,47 +65,78 @@ const Headers = struct {{'{'}}{% for field, field_info in sprite_headers.items()
     {{'}'}}
 {{'}'}};
 
-
 pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {{'{'}}{% for sprite_name in sprite_names %}
     const {{sprite_name}}_file = try std.fs.cwd().openFile("assets/sprites/{{sprite_name}}.sprite", .{});
     const {{sprite_name}}_file_size: u64 = (try {{sprite_name}}_file.stat()).size;
     var {{sprite_name}}_content = try allocator.alloc(u8, @intCast({{sprite_name}}_file_size));
+
     _ = try {{sprite_name}}_file.read({{sprite_name}}_content);
+
     if ({{sprite_name}}_content[{{sprite_name}}_content.len-1] != '\n') {
         std.debug.print("Sprite '{{sprite_name}}.sprite' must end in a newline\n", .{{'{}'}});
         return SpriteLoadError.NoNewline;
     }
+
     const {{sprite_name}}_header_content = {{sprite_name}}_content[0..find_first_newline({{sprite_name}}_content)];
     {{sprite_name}}_content = {{sprite_name}}_content[find_first_newline({{sprite_name}}_content)+1..];
+    const {{sprite_name}}_stride = find_stride_of({{sprite_name}}_content);
+
     const {{sprite_name}}_header = Headers.init({{sprite_name}}_header_content) catch |e| {{'{'}}
         std.debug.print("Failed loading headers for file '{{sprite_name}}.sprite'. Header content: {{'{'}}s{{'}'}}\n", .{{'{'}}{{sprite_name}}_header_content{{'}'}});
         return e;
     {{'}'}};
+
     if ({{sprite_name}}_content.len == 0) {
         std.debug.print("Sprite '{{sprite_name}}.sprite' with header '{{'{}'}}'' has no content.\n", .{{'{'}}{{sprite_name}}_header{{'}'}});
         return SpriteLoadError.EmptySprite;
     }
-    const {{sprite_name}}_stride = find_first_newline({{sprite_name}}_content);
-    const {{sprite_name}}_newline_count = std.mem.replace(u8, {{sprite_name}}_content, "\n", "", {{sprite_name}}_content);
-    {{sprite_name}}_content = {{sprite_name}}_content[0 .. {{sprite_name}}_content.len - {{sprite_name}}_newline_count];
-    
-    
+
+    const {{sprite_name}}_newline_count: usize = std.mem.count(u8, {{sprite_name}}_content, "\n");
+
+    const {{sprite_name}}_padded_file_size = {{sprite_name}}_stride * {{sprite_name}}_newline_count;
+    std.debug.print("Size allocated: {d} x {d} = {d} for sprite: {{sprite_name}}\n", .{
+        {{sprite_name}}_stride,
+        {{sprite_name}}_newline_count,
+        {{sprite_name}}_padded_file_size
+    });
+
+    const {{sprite_name}}_content_padded = try allocator.alloc(u8, @intCast({{sprite_name}}_padded_file_size));
+    std.debug.print("Padding buffer {{sprite_name}}:\n{s}\n", .{ {{sprite_name}}_content });
+    right_pad_sprite({{sprite_name}}_content_padded, {{sprite_name}}_content, {{sprite_name}}_stride);
+    std.debug.print("Chars after padding:\n{s}\n", .{ {{sprite_name}}_content_padded });
 
     {% endfor %}
+
     const collection = SpriteCollection {{'{'}}{% for sprite_name in sprite_names %}
         .{{sprite_name}} = Sprite {
-            .data={{sprite_name}}_content,
+            .data={{sprite_name}}_content_padded,
             .stride_length=@intCast({{sprite_name}}_stride),
             .headers={{sprite_name}}_header,
         },
     {% endfor %}
     {{'}'}};
+
     std.debug.print("Loaded sprites: {}\n", .{collection});
     return collection;
-    
-    
 {{'}'}}
 
+fn find_stride_of(buffer: []u8) usize {
+    var max_line_len: usize = 0;
+    var line_len: usize = 0;
+
+    for (buffer) |char| {
+        if (char == 10) {
+            line_len = 0;
+        } else {
+            line_len += 1;
+        }
+        if (max_line_len < line_len) {
+            max_line_len = line_len;
+        }
+    }
+
+    return max_line_len;
+}
 
 fn find_first_newline(buffer: []u8) usize {
     for (buffer, 0..) |char, index| {
@@ -128,18 +159,23 @@ fn find_longest_line(buffer: []u8) usize {
 
     return curr_len;
 }
-{# 
+
 fn right_pad_sprite(buffer_write: []u8, buffer_read: []u8, stride_length: usize) void {
     var spliterator = std.mem.splitScalar(u8, buffer_read, '\n');
+    var ptr: usize = 0;
 
     while (spliterator.next()) |val| {
-        if (val.len == stride_length) {
-            buffer_write += val;
-        } else {
-            const padding = .{' ' ** stride_length - val.len};
-            buffer_write += val + padding;
+        if (val.len == 0) {
+            continue;
         }
+        for (0..val.len) |i| {  // Minus one to avoid whitespace due to newline at the end of sprite
+            buffer_write[ptr + i] = val[i];
+        }
+        if (val.len < stride_length) {
+            for (val.len..stride_length) |i| {
+                buffer_write[ptr + i] = ' ';
+            }
+        }
+        ptr += stride_length;
     }
-
-    return buffer_write;
-} #}
+}
