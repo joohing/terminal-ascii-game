@@ -73,8 +73,9 @@ pub fn main() !void {
         };
 
         try entity_manager.update(&game_state);
-        var entity_buffer: [128]*Entity = undefined;
-        for (entity_manager.get_all_entities(&entity_buffer)) |*entity| {
+        var entity_iterator = entity_manager.get_all_entities_iter();
+        while (entity_iterator.next()) |*entity_type| {
+            const entity = entity_type.*.get_inner();
             rendering.render.render(
                 entity.*.get_curr_sprite(),
                 entity.*.x,

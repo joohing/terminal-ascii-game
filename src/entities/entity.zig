@@ -2,8 +2,11 @@ const std = @import("std");
 const rendering = @import("rendering");
 const helpers = @import("helpers");
 const GameState = @import("helpers.zig").GameState;
+const Tag = @import("tags.zig").Tag;
 
 var entity_id_ctr: u32 = 0;
+
+const TAG_ARR_SIZE: u32 = 4;
 pub const Entity = struct {
     id: u32,
     x: i32,
@@ -23,6 +26,7 @@ pub const Entity = struct {
     ) Entity {
         const id = entity_id_ctr;
         entity_id_ctr += 1;
+
         return Entity{
             .id = id,
             ._update = update_fn,
@@ -32,6 +36,14 @@ pub const Entity = struct {
             .collider = rect,
             ._get_curr_sprite = get_curr_sprite_fn,
         };
+    }
+    pub fn has_tag(self: *Entity, tag: Tag) bool {
+        for (self.tags) |t| {
+            if (t == tag) {
+                return true;
+            }
+        }
+        return false;
     }
     pub fn update(self: *Entity, game_state: *GameState) void {
         self._update(self, game_state);
