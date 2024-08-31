@@ -11,16 +11,12 @@ pub const Sprite = struct {
 };
 
 pub const SpriteCollection = struct {
-    player_REMOTE_45101: Sprite,
     jonathan: Sprite,
-    player_LOCAL_45101: Sprite,
-    player_BACKUP_45101: Sprite,
     player: Sprite,
     MONSTER_1: Sprite,
     er: Sprite,
     dum: Sprite,
     player_projectile: Sprite,
-    player_BASE_45101: Sprite,
 };
 
 const HeaderInitError = error{
@@ -101,41 +97,82 @@ pub const Headers = struct {
 };
 
 pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
-    const player_REMOTE_45101_file = try std.fs.cwd().openFile("assets/sprites/player_REMOTE_45101.sprite", .{});
-    const player_REMOTE_45101_file_size: u64 = (try player_REMOTE_45101_file.stat()).size;
-    var player_REMOTE_45101_content = try allocator.alloc(u8, @intCast(player_REMOTE_45101_file_size));
+<<<<<<< HEAD
+    const TEST_file = try std.fs.cwd().openFile("assets/sprites/TEST.sprite", .{});
+    const TEST_file_size: u64 = (try TEST_file.stat()).size;
+    var TEST_content = try allocator.alloc(u8, @intCast(TEST_file_size));
 
-    _ = try player_REMOTE_45101_file.read(player_REMOTE_45101_content);
+    _ = try TEST_file.read(TEST_content);
 
-    if (player_REMOTE_45101_content[player_REMOTE_45101_content.len - 1] != '\n') {
-        std.debug.print("Sprite 'player_REMOTE_45101.sprite' must end in a newline\n", .{});
+    if (TEST_content[TEST_content.len - 1] != '\n') {
+        std.debug.print("Sprite 'TEST.sprite' must end in a newline\n", .{});
         return SpriteLoadError.NoNewline;
     }
 
-    const player_REMOTE_45101_header_content = player_REMOTE_45101_content[0..find_first_newline(player_REMOTE_45101_content)];
-    player_REMOTE_45101_content = player_REMOTE_45101_content[find_first_newline(player_REMOTE_45101_content) + 1 ..];
-    const player_REMOTE_45101_stride = find_stride_of(player_REMOTE_45101_content);
+    const TEST_header_content = TEST_content[0..find_first_newline(TEST_content)];
+    //std.debug.print("First newline for TEST: {}", .{find_first_newline(TEST_content)});
+    TEST_content = TEST_content[find_first_newline(TEST_content) + 1 ..];
+    const TEST_stride = find_stride_of(TEST_content);
 
-    const player_REMOTE_45101_header = Headers.init(player_REMOTE_45101_header_content) catch |e| {
-        std.debug.print("Failed loading headers for file 'player_REMOTE_45101.sprite'. Header content: {s}\n", .{player_REMOTE_45101_header_content});
+    const TEST_header = Headers.init(TEST_header_content) catch |e| {
+        std.debug.print("Failed loading headers for file 'TEST.sprite'. Header content: {s}\n", .{TEST_header_content});
         return e;
     };
 
-    if (player_REMOTE_45101_content.len == 0) {
-        std.debug.print("Sprite 'player_REMOTE_45101.sprite' with header '{}'' has no content.\n", .{player_REMOTE_45101_header});
+    if (TEST_content.len == 0) {
+        std.debug.print("Sprite 'TEST.sprite' with header '{}'' has no content.\n", .{TEST_header});
         return SpriteLoadError.EmptySprite;
     }
 
-    const player_REMOTE_45101_newline_count: usize = std.mem.count(u8, player_REMOTE_45101_content, "\n");
+    const TEST_newline_count: usize = std.mem.count(u8, TEST_content, "\n");
 
-    const player_REMOTE_45101_padded_file_size = player_REMOTE_45101_stride * player_REMOTE_45101_newline_count;
-    std.debug.print("Size allocated: {d} x {d} = {d} for sprite: player_REMOTE_45101\n", .{ player_REMOTE_45101_stride, player_REMOTE_45101_newline_count, player_REMOTE_45101_padded_file_size });
+    const TEST_padded_file_size = TEST_stride * TEST_newline_count;
+    std.debug.print("Size allocated: {d} x {d} = {d} for sprite: TEST\n", .{ TEST_stride, TEST_newline_count, TEST_padded_file_size });
 
-    const player_REMOTE_45101_content_padded = try allocator.alloc(u8, @intCast(player_REMOTE_45101_padded_file_size));
-    right_pad_sprite(player_REMOTE_45101_content_padded, player_REMOTE_45101_content, player_REMOTE_45101_stride);
+    const TEST_content_padded = try allocator.alloc(u8, @intCast(TEST_padded_file_size));
+    right_pad_sprite(TEST_content_padded, TEST_content, TEST_stride);
 
-    const player_REMOTE_45101_bytes_per_frame = player_REMOTE_45101_stride * player_REMOTE_45101_header.lines_per_frame;
+    const TEST_bytes_per_frame = TEST_stride * TEST_header.lines_per_frame;
 
+||||||| 435475b
+    const TEST_file = try std.fs.cwd().openFile("assets/sprites/TEST.sprite", .{});
+    const TEST_file_size: u64 = (try TEST_file.stat()).size;
+    var TEST_content = try allocator.alloc(u8, @intCast(TEST_file_size));
+
+    _ = try TEST_file.read(TEST_content);
+
+    if (TEST_content[TEST_content.len - 1] != '\n') {
+        std.debug.print("Sprite 'TEST.sprite' must end in a newline\n", .{});
+        return SpriteLoadError.NoNewline;
+    }
+
+    const TEST_header_content = TEST_content[0..find_first_newline(TEST_content)];
+    //std.debug.print("First newline for TEST: {}", .{find_first_newline(TEST_content)});
+    TEST_content = TEST_content[find_first_newline(TEST_content) + 1 ..];
+    const TEST_stride = find_stride_of(TEST_content);
+
+    const TEST_header = Headers.init(TEST_header_content) catch |e| {
+        std.debug.print("Failed loading headers for file 'TEST.sprite'. Header content: {s}\n", .{TEST_header_content});
+        return e;
+    };
+
+    if (TEST_content.len == 0) {
+        std.debug.print("Sprite 'TEST.sprite' with header '{}'' has no content.\n", .{TEST_header});
+        return SpriteLoadError.EmptySprite;
+    }
+
+    const TEST_newline_count: usize = std.mem.count(u8, TEST_content, "\n");
+
+    const TEST_padded_file_size = TEST_stride * TEST_newline_count;
+    std.debug.print("Size allocated: {d} x {d} = {d} for sprite: TEST\n", .{ TEST_stride, TEST_newline_count, TEST_padded_file_size });
+
+    const TEST_content_padded = try allocator.alloc(u8, @intCast(TEST_padded_file_size));
+    std.debug.print("Padding buffer TEST:\n{s}\n", .{TEST_content});
+    right_pad_sprite(TEST_content_padded, TEST_content, TEST_stride);
+    std.debug.print("Chars after padding:\n{s}\n", .{TEST_content_padded});
+
+=======
+>>>>>>> origin/collision-detection
     const jonathan_file = try std.fs.cwd().openFile("assets/sprites/jonathan.sprite", .{});
     const jonathan_file_size: u64 = (try jonathan_file.stat()).size;
     var jonathan_content = try allocator.alloc(u8, @intCast(jonathan_file_size));
@@ -171,76 +208,6 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
 
     const jonathan_bytes_per_frame = jonathan_stride * jonathan_header.lines_per_frame;
 
-    const player_LOCAL_45101_file = try std.fs.cwd().openFile("assets/sprites/player_LOCAL_45101.sprite", .{});
-    const player_LOCAL_45101_file_size: u64 = (try player_LOCAL_45101_file.stat()).size;
-    var player_LOCAL_45101_content = try allocator.alloc(u8, @intCast(player_LOCAL_45101_file_size));
-
-    _ = try player_LOCAL_45101_file.read(player_LOCAL_45101_content);
-
-    if (player_LOCAL_45101_content[player_LOCAL_45101_content.len - 1] != '\n') {
-        std.debug.print("Sprite 'player_LOCAL_45101.sprite' must end in a newline\n", .{});
-        return SpriteLoadError.NoNewline;
-    }
-
-    const player_LOCAL_45101_header_content = player_LOCAL_45101_content[0..find_first_newline(player_LOCAL_45101_content)];
-    player_LOCAL_45101_content = player_LOCAL_45101_content[find_first_newline(player_LOCAL_45101_content) + 1 ..];
-    const player_LOCAL_45101_stride = find_stride_of(player_LOCAL_45101_content);
-
-    const player_LOCAL_45101_header = Headers.init(player_LOCAL_45101_header_content) catch |e| {
-        std.debug.print("Failed loading headers for file 'player_LOCAL_45101.sprite'. Header content: {s}\n", .{player_LOCAL_45101_header_content});
-        return e;
-    };
-
-    if (player_LOCAL_45101_content.len == 0) {
-        std.debug.print("Sprite 'player_LOCAL_45101.sprite' with header '{}'' has no content.\n", .{player_LOCAL_45101_header});
-        return SpriteLoadError.EmptySprite;
-    }
-
-    const player_LOCAL_45101_newline_count: usize = std.mem.count(u8, player_LOCAL_45101_content, "\n");
-
-    const player_LOCAL_45101_padded_file_size = player_LOCAL_45101_stride * player_LOCAL_45101_newline_count;
-    std.debug.print("Size allocated: {d} x {d} = {d} for sprite: player_LOCAL_45101\n", .{ player_LOCAL_45101_stride, player_LOCAL_45101_newline_count, player_LOCAL_45101_padded_file_size });
-
-    const player_LOCAL_45101_content_padded = try allocator.alloc(u8, @intCast(player_LOCAL_45101_padded_file_size));
-    right_pad_sprite(player_LOCAL_45101_content_padded, player_LOCAL_45101_content, player_LOCAL_45101_stride);
-
-    const player_LOCAL_45101_bytes_per_frame = player_LOCAL_45101_stride * player_LOCAL_45101_header.lines_per_frame;
-
-    const player_BACKUP_45101_file = try std.fs.cwd().openFile("assets/sprites/player_BACKUP_45101.sprite", .{});
-    const player_BACKUP_45101_file_size: u64 = (try player_BACKUP_45101_file.stat()).size;
-    var player_BACKUP_45101_content = try allocator.alloc(u8, @intCast(player_BACKUP_45101_file_size));
-
-    _ = try player_BACKUP_45101_file.read(player_BACKUP_45101_content);
-
-    if (player_BACKUP_45101_content[player_BACKUP_45101_content.len - 1] != '\n') {
-        std.debug.print("Sprite 'player_BACKUP_45101.sprite' must end in a newline\n", .{});
-        return SpriteLoadError.NoNewline;
-    }
-
-    const player_BACKUP_45101_header_content = player_BACKUP_45101_content[0..find_first_newline(player_BACKUP_45101_content)];
-    player_BACKUP_45101_content = player_BACKUP_45101_content[find_first_newline(player_BACKUP_45101_content) + 1 ..];
-    const player_BACKUP_45101_stride = find_stride_of(player_BACKUP_45101_content);
-
-    const player_BACKUP_45101_header = Headers.init(player_BACKUP_45101_header_content) catch |e| {
-        std.debug.print("Failed loading headers for file 'player_BACKUP_45101.sprite'. Header content: {s}\n", .{player_BACKUP_45101_header_content});
-        return e;
-    };
-
-    if (player_BACKUP_45101_content.len == 0) {
-        std.debug.print("Sprite 'player_BACKUP_45101.sprite' with header '{}'' has no content.\n", .{player_BACKUP_45101_header});
-        return SpriteLoadError.EmptySprite;
-    }
-
-    const player_BACKUP_45101_newline_count: usize = std.mem.count(u8, player_BACKUP_45101_content, "\n");
-
-    const player_BACKUP_45101_padded_file_size = player_BACKUP_45101_stride * player_BACKUP_45101_newline_count;
-    std.debug.print("Size allocated: {d} x {d} = {d} for sprite: player_BACKUP_45101\n", .{ player_BACKUP_45101_stride, player_BACKUP_45101_newline_count, player_BACKUP_45101_padded_file_size });
-
-    const player_BACKUP_45101_content_padded = try allocator.alloc(u8, @intCast(player_BACKUP_45101_padded_file_size));
-    right_pad_sprite(player_BACKUP_45101_content_padded, player_BACKUP_45101_content, player_BACKUP_45101_stride);
-
-    const player_BACKUP_45101_bytes_per_frame = player_BACKUP_45101_stride * player_BACKUP_45101_header.lines_per_frame;
-
     const player_file = try std.fs.cwd().openFile("assets/sprites/player.sprite", .{});
     const player_file_size: u64 = (try player_file.stat()).size;
     var player_content = try allocator.alloc(u8, @intCast(player_file_size));
@@ -272,9 +239,9 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     std.debug.print("Size allocated: {d} x {d} = {d} for sprite: player\n", .{ player_stride, player_newline_count, player_padded_file_size });
 
     const player_content_padded = try allocator.alloc(u8, @intCast(player_padded_file_size));
+    std.debug.print("Padding buffer player:\n{s}\n", .{player_content});
     right_pad_sprite(player_content_padded, player_content, player_stride);
-
-    const player_bytes_per_frame = player_stride * player_header.lines_per_frame;
+    std.debug.print("Chars after padding:\n{s}\n", .{player_content_padded});
 
     const MONSTER_1_file = try std.fs.cwd().openFile("assets/sprites/MONSTER_1.sprite", .{});
     const MONSTER_1_file_size: u64 = (try MONSTER_1_file.stat()).size;
@@ -381,11 +348,28 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
 
     const dum_bytes_per_frame = dum_stride * dum_header.lines_per_frame;
 
+<<<<<<< HEAD
+    const collection = SpriteCollection{
+        .TEST = Sprite{
+            .data = TEST_content_padded,
+            .stride_length = @intCast(TEST_stride),
+            .headers = TEST_header,
+            .curr_frame = TEST_content_padded[0..TEST_bytes_per_frame],
+        },
+||||||| 435475b
+    const collection = SpriteCollection{
+        .TEST = Sprite{
+            .data = TEST_content_padded,
+            .stride_length = @intCast(TEST_stride),
+            .headers = TEST_header,
+        },
+=======
     const player_projectile_file = try std.fs.cwd().openFile("assets/sprites/player_projectile.sprite", .{});
     const player_projectile_file_size: u64 = (try player_projectile_file.stat()).size;
     var player_projectile_content = try allocator.alloc(u8, @intCast(player_projectile_file_size));
 
     _ = try player_projectile_file.read(player_projectile_content);
+>>>>>>> origin/collision-detection
 
     if (player_projectile_content[player_projectile_content.len - 1] != '\n') {
         std.debug.print("Sprite 'player_projectile.sprite' must end in a newline\n", .{});
@@ -412,53 +396,11 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     std.debug.print("Size allocated: {d} x {d} = {d} for sprite: player_projectile\n", .{ player_projectile_stride, player_projectile_newline_count, player_projectile_padded_file_size });
 
     const player_projectile_content_padded = try allocator.alloc(u8, @intCast(player_projectile_padded_file_size));
+    std.debug.print("Padding buffer player_projectile:\n{s}\n", .{player_projectile_content});
     right_pad_sprite(player_projectile_content_padded, player_projectile_content, player_projectile_stride);
-
-    const player_projectile_bytes_per_frame = player_projectile_stride * player_projectile_header.lines_per_frame;
-
-    const player_BASE_45101_file = try std.fs.cwd().openFile("assets/sprites/player_BASE_45101.sprite", .{});
-    const player_BASE_45101_file_size: u64 = (try player_BASE_45101_file.stat()).size;
-    var player_BASE_45101_content = try allocator.alloc(u8, @intCast(player_BASE_45101_file_size));
-
-    _ = try player_BASE_45101_file.read(player_BASE_45101_content);
-
-    if (player_BASE_45101_content[player_BASE_45101_content.len - 1] != '\n') {
-        std.debug.print("Sprite 'player_BASE_45101.sprite' must end in a newline\n", .{});
-        return SpriteLoadError.NoNewline;
-    }
-
-    const player_BASE_45101_header_content = player_BASE_45101_content[0..find_first_newline(player_BASE_45101_content)];
-    player_BASE_45101_content = player_BASE_45101_content[find_first_newline(player_BASE_45101_content) + 1 ..];
-    const player_BASE_45101_stride = find_stride_of(player_BASE_45101_content);
-
-    const player_BASE_45101_header = Headers.init(player_BASE_45101_header_content) catch |e| {
-        std.debug.print("Failed loading headers for file 'player_BASE_45101.sprite'. Header content: {s}\n", .{player_BASE_45101_header_content});
-        return e;
-    };
-
-    if (player_BASE_45101_content.len == 0) {
-        std.debug.print("Sprite 'player_BASE_45101.sprite' with header '{}'' has no content.\n", .{player_BASE_45101_header});
-        return SpriteLoadError.EmptySprite;
-    }
-
-    const player_BASE_45101_newline_count: usize = std.mem.count(u8, player_BASE_45101_content, "\n");
-
-    const player_BASE_45101_padded_file_size = player_BASE_45101_stride * player_BASE_45101_newline_count;
-    std.debug.print("Size allocated: {d} x {d} = {d} for sprite: player_BASE_45101\n", .{ player_BASE_45101_stride, player_BASE_45101_newline_count, player_BASE_45101_padded_file_size });
-
-    const player_BASE_45101_content_padded = try allocator.alloc(u8, @intCast(player_BASE_45101_padded_file_size));
-    right_pad_sprite(player_BASE_45101_content_padded, player_BASE_45101_content, player_BASE_45101_stride);
-
-    const player_BASE_45101_bytes_per_frame = player_BASE_45101_stride * player_BASE_45101_header.lines_per_frame;
+    std.debug.print("Chars after padding:\n{s}\n", .{player_projectile_content_padded});
 
     const collection = SpriteCollection{
-        .player_REMOTE_45101 = Sprite{
-            .data = player_REMOTE_45101_content_padded,
-            .stride_length = @intCast(player_REMOTE_45101_stride),
-            .headers = player_REMOTE_45101_header,
-            .curr_frame = player_REMOTE_45101_content_padded[0..player_REMOTE_45101_bytes_per_frame],
-        },
-
         .jonathan = Sprite{
             .data = jonathan_content_padded,
             .stride_length = @intCast(jonathan_stride),
@@ -466,25 +408,10 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
             .curr_frame = jonathan_content_padded[0..jonathan_bytes_per_frame],
         },
 
-        .player_LOCAL_45101 = Sprite{
-            .data = player_LOCAL_45101_content_padded,
-            .stride_length = @intCast(player_LOCAL_45101_stride),
-            .headers = player_LOCAL_45101_header,
-            .curr_frame = player_LOCAL_45101_content_padded[0..player_LOCAL_45101_bytes_per_frame],
-        },
-
-        .player_BACKUP_45101 = Sprite{
-            .data = player_BACKUP_45101_content_padded,
-            .stride_length = @intCast(player_BACKUP_45101_stride),
-            .headers = player_BACKUP_45101_header,
-            .curr_frame = player_BACKUP_45101_content_padded[0..player_BACKUP_45101_bytes_per_frame],
-        },
-
         .player = Sprite{
             .data = player_content_padded,
             .stride_length = @intCast(player_stride),
             .headers = player_header,
-            .curr_frame = player_content_padded[0..player_bytes_per_frame],
         },
 
         .MONSTER_1 = Sprite{
@@ -512,14 +439,6 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
             .data = player_projectile_content_padded,
             .stride_length = @intCast(player_projectile_stride),
             .headers = player_projectile_header,
-            .curr_frame = player_projectile_content_padded[0..player_projectile_bytes_per_frame],
-        },
-
-        .player_BASE_45101 = Sprite{
-            .data = player_BASE_45101_content_padded,
-            .stride_length = @intCast(player_BASE_45101_stride),
-            .headers = player_BASE_45101_header,
-            .curr_frame = player_BASE_45101_content_padded[0..player_BASE_45101_bytes_per_frame],
         },
     };
 

@@ -8,11 +8,6 @@ pub fn concat_strs(s1: []const u8, s2: []const u8, dest: *[DEST_BUFFER_SIZE]u8, 
     std.mem.copyForwards(u8, dest[buffer_start + s1.len ..], s2);
 }
 
-// pub fn concat_3_strs(s1: []const u8, s2: []const u8, s3: []const u8, dest: *[DEST_BUFFER_SIZE]u8) void {
-//     std.mem.copyForwards(u8, dest, s1);
-//     std.mem.copyForwards(u8, dest[s1.len..], s2);
-// }
-
 pub const Direction = enum {
     Up,
     Right,
@@ -36,6 +31,14 @@ pub const Direction = enum {
             2 => Direction.Down,
             3 => Direction.Left,
             else => unreachable,
+        };
+    }
+    pub fn get_inverse(self: *const Direction) Direction {
+        return switch (self.*) {
+            Direction.Up => Direction.Up,
+            Direction.Right => Direction.Left,
+            Direction.Down => Direction.Down,
+            Direction.Left => Direction.Right,
         };
     }
     fn to_int(self: *const Direction) u2 {
@@ -67,4 +70,77 @@ fn join_strs(s1: []const u8, s2: []const u8, buf: []u8) void {
 
 test {
     std.testing.refAllDecls(@This());
+}
+
+pub const Rect = struct {
+    x: i32,
+    y: i32,
+    w: i32,
+    h: i32,
+};
+
+pub fn rotate_point(px: i32, py: i32, rotation_axis_x: i32, rotation_axis_y: i32, rotation: Direction) struct { x: i32, y: i32 } {
+    const x_diff = rotation_axis_x - px;
+    const y_diff = rotation_axis_y - py;
+    //2,0
+    return switch (rotation) {
+        .Up => .{ .x = px, .y = py },
+        .Right => {
+            const res_x = rotation_axis_x + y_diff;
+            const res_y = rotation_axis_y - x_diff;
+            return .{ .x = res_x, .y = res_y };
+        },
+        .Down => {
+            const res_x = x_diff + rotation_axis_x;
+            const res_y = y_diff + rotation_axis_y;
+            return .{ .x = res_x, .y = res_y };
+        },
+        .Left => {
+            const res_x = rotation_axis_x - y_diff;
+            const res_y = rotation_axis_y + x_diff;
+            return .{ .x = res_x, .y = res_y };
+        },
+    };
+}
+
+test "can_rotate_point_right" {
+    //
+    //  O
+    //
+    //
+    const rotated_point = rotate_point(0, 0, 1, 1, Direction.Right);
+    try std.testing.expect(rotated_point.x == 2 and rotated_point.y == 0);
+}
+
+test "can_rotate_point_right_v2" {
+    // 0 1 2 3 4
+    // 1   O
+    // 2 X
+    // 3
+    const rotated_point = rotate_point(1, 2, 2, 1, Direction.Right);
+    try std.testing.expect(rotated_point.x == 1 and rotated_point.y == 0);
+}
+test "can_rotate_point_down_v2" {
+    // 0 1 2 3 4
+    // 1   O
+    // 2 X
+    // 3
+    const rotated_point = rotate_point(1, 2, 2, 1, Direction.Down);
+    try std.testing.expect(rotated_point.x == 3 and rotated_point.y == 0);
+}
+test "can_rotate_point_left_v2" {
+    // 0 1 2 3 4
+    // 1   O
+    // 2 X
+    // 3
+    const rotated_point = rotate_point(1, 2, 2, 1, Direction.Left);
+    try std.testing.expect(rotated_point.x == 3 and rotated_point.y == 2);
+}
+test "can_rotate_point_up_v2" {
+    // 0 1 2 3 4
+    // 1   O
+    // 2 X
+    // 3
+    const rotated_point = rotate_point(1, 2, 2, 1, Direction.Up);
+    try std.testing.expect(rotated_point.x == 1 and rotated_point.y == 2);
 }

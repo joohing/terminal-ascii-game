@@ -27,9 +27,15 @@ const SpriteLoadError = error{{'{'}}
     NoNewline,
 {{'}'}};
 
-pub const Headers = struct {{'{'}}
+<<<<<<< HEAD
+const Headers = struct {{'{'}}
     {% for field, field_info in sprite_headers.items() %}
     {{field}}: {{field_info["type"]}},
+||||||| 435475b
+const Headers = struct {{'{'}}{% for field, field_info in sprite_headers.items() %}{{field}}: {{field_info["type"]}},
+=======
+pub const Headers = struct {{'{'}}{% for field, field_info in sprite_headers.items() %}{{field}}: {{field_info["type"]}},
+>>>>>>> origin/collision-detection
     {% endfor %}
 
     fn init(header_str: []u8) !Headers {{'{'}}

@@ -60,14 +60,21 @@ pub fn main() !void {
             rendering.display.c.SDL_Quit();
             break :gameloop;
         };
+<<<<<<< HEAD
 
+        for (entities[0..last_entity_ptr]) |entity| {
+            entity.update(keys_pressed);
+||||||| 435475b
+        for (entities[0..last_entity_ptr]) |entity| {
+            entity.update(keys_pressed);
+=======
         if (keys_pressed[c.SDL_SCANCODE_C]) {
             show_colliders = true;
         }
         if (keys_pressed[c.SDL_SCANCODE_X]) {
             show_colliders = false;
+>>>>>>> origin/collision-detection
         }
-
         var game_state = GameState{
             .keys_pressed = keys_pressed,
             .entity_manager = &entity_manager,
