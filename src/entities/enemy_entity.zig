@@ -8,7 +8,7 @@ const c = @cImport({
     @cInclude("SDL2/sdl.h");
 });
 
-const FRAMES_PER_ANIMATION_STEP = 60;
+const FRAMES_PER_ANIMATION_STEP = 30;
 
 fn next_dir(dir: helpers.Direction) helpers.Direction {
     return switch (dir) {

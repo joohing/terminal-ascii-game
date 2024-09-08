@@ -89,7 +89,7 @@ pub fn main() !void {
             );
             if (show_colliders) {
                 if (entity.*.collider) |coll| {
-                    rendering.render.render_rect(
+                    rendering.render.renderRect(
                         coll,
                         '.',
                         helpers.constants.WINDOW_WIDTH,

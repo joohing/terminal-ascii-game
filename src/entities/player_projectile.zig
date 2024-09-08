@@ -11,7 +11,7 @@ const c = @cImport({
 const detect_collisions = @import("collisions.zig").detect_collisions;
 
 const PROJECTILE_LIFETIME_MS = 1000;
-const FRAMES_PER_ANIMATION_STEP = 60;
+const FRAMES_PER_ANIMATION_STEP = 2;
 
 pub const PlayerProjectileEntity = struct {
     sprite: *const rendering.sprites.Sprite,

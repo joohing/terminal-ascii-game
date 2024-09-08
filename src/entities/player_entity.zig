@@ -11,7 +11,7 @@ const c = @cImport({
 });
 
 const SHOOT_PROJECTILE_COOLDOWN_MS = 500;
-const FRAMES_PER_ANIMATION_STEP = 60;
+const FRAMES_PER_ANIMATION_STEP = 15;
 
 pub const PlayerEntity = struct {
     sprite: *const rendering.sprites.Sprite,

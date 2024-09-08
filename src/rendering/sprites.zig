@@ -33,9 +33,12 @@ const SpriteLoadError = error{
 
 pub const Headers = struct {
     rotation: helpers.Direction,
+
     center_of_rotation_x: u8,
+
     center_of_rotation_y: u8,
-    lines_per_frame: usize,
+
+    lines_per_frame: u8,
 
     fn init(header_str: []u8) !Headers {
         var args: [4][]const u8 = undefined;

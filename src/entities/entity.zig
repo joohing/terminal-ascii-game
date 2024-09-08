@@ -54,6 +54,21 @@ pub const Entity = struct {
     }
 
     pub fn update(self: *Entity, game_state: *GameState) void {
+        self._frames_since_step_change += 1;
+
+        if (self._frames_since_step_change >= self._frames_per_step_change) {
+            const sprite = self.get_curr_sprite();
+            const lines_to_add = sprite.headers.lines_per_frame * sprite.stride_length;
+
+            if (self._curr_anim_step_start + lines_to_add >= sprite.data.len) {
+                self._curr_anim_step_start = 1;
+            } else {
+                self._curr_anim_step_start += lines_to_add;
+            }
+
+            self._frames_since_step_change = 0;
+        }
+
         self._update(self, game_state);
     }
 

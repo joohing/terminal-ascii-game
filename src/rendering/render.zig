@@ -38,7 +38,7 @@ pub fn render(
     }
 }
 
-pub fn render_rect(
+pub fn renderRect(
     rect: helpers.Rect,
     char: u8,
     window_width: u8,
