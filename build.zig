@@ -37,6 +37,10 @@ pub fn build(b: *std.Build) !void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
+    const exe_check = b.addExecutable(.{ .name = "Code checker for language services", .root_source_file = b.path("src/main.zig"), .target = target, .optimize = optimize });
+    const check = b.step("check", "Check if the program compiles");
+    check.dependOn(&exe_check.step);
+
     const lib = b.addStaticLibrary(.{
         .name = "terminal-ascii-game",
         // In this case the main source file is merely a path, however, in more

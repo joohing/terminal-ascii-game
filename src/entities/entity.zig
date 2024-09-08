@@ -11,6 +11,9 @@ pub const Entity = struct {
     id: u32,
     x: i32,
     y: i32,
+    _curr_anim_step_start: usize,
+    _frames_since_step_change: usize,
+    _frames_per_step_change: usize,
     rotation: helpers.Direction,
     collider: ?helpers.Rect,
     _update: *const fn (entity: *Entity, game_state: *GameState) void,
@@ -19,6 +22,7 @@ pub const Entity = struct {
     pub fn init(
         update_fn: fn (self: *Entity, game_state: *GameState) void,
         get_curr_sprite_fn: fn (self: *Entity) *const rendering.sprites.Sprite,
+        frames_per_step_change: usize,
         x: i32,
         y: i32,
         rotation: helpers.Direction,
@@ -32,6 +36,9 @@ pub const Entity = struct {
             ._update = update_fn,
             .x = x,
             .y = y,
+            ._frames_per_step_change = frames_per_step_change,
+            ._frames_since_step_change = 0,
+            ._curr_anim_step_start = 1,
             .rotation = rotation,
             .collider = rect,
             ._get_curr_sprite = get_curr_sprite_fn,
@@ -45,6 +52,7 @@ pub const Entity = struct {
         }
         return false;
     }
+
     pub fn update(self: *Entity, game_state: *GameState) void {
         self._update(self, game_state);
     }

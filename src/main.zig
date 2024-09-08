@@ -80,6 +80,7 @@ pub fn main() !void {
             const entity = entity_type.*.get_inner();
             rendering.render.render(
                 entity.*.get_curr_sprite(),
+                entity.*._curr_anim_step_start,
                 entity.*.x,
                 entity.*.y,
                 entity.*.rotation,

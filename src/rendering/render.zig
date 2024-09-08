@@ -6,6 +6,7 @@ const common = @import("common.zig");
 
 pub fn render(
     sprite: *const sprites.Sprite,
+    frame_start: usize,
     x: i32,
     y: i32,
     rotation: helpers.Direction,
@@ -16,7 +17,10 @@ pub fn render(
 
     // std.debug.print("Starting render {}...\n", .{sprite});
     const window_height = render_buffer.chars.len / window_width;
-    for (sprite.curr_frame, 0..) |pixel, index| {
+
+    const data_to_draw = sprite.data[frame_start - 1 .. frame_start - 1 + sprite.stride_length * sprite.headers.lines_per_frame];
+
+    for (data_to_draw, 0..) |pixel, index| {
         if (pixel == 32) {
             continue;
         }

@@ -8,6 +8,8 @@ const c = @cImport({
     @cInclude("SDL2/sdl.h");
 });
 
+const FRAMES_PER_ANIMATION_STEP = 60;
+
 fn next_dir(dir: helpers.Direction) helpers.Direction {
     return switch (dir) {
         .Up => .Right,
@@ -27,6 +29,7 @@ pub const EnemyEntity = struct {
         const entity = Entity.init(
             update,
             get_curr_sprite,
+            FRAMES_PER_ANIMATION_STEP,
             start_x,
             start_y,
             helpers.Direction.Up,

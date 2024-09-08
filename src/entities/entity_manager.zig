@@ -25,7 +25,7 @@ pub const EntityType = union(EntityTypeEnum) {
     }
 };
 
-const EntityManagerError = error{
+const EntityManagerError = error {
     NoMoreEntitySlots,
     NoEntityFound,
 };

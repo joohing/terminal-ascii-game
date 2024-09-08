@@ -11,6 +11,7 @@ const c = @cImport({
 });
 
 const SHOOT_PROJECTILE_COOLDOWN_MS = 500;
+const FRAMES_PER_ANIMATION_STEP = 60;
 
 pub const PlayerEntity = struct {
     sprite: *const rendering.sprites.Sprite,
@@ -22,6 +23,7 @@ pub const PlayerEntity = struct {
         const entity = Entity.init(
             update,
             get_curr_sprite,
+            FRAMES_PER_ANIMATION_STEP,
             start_x,
             start_y,
             helpers.Direction.Up,
@@ -49,11 +51,6 @@ pub const PlayerEntity = struct {
 pub fn get_curr_sprite(entity: *Entity) *const rendering.sprites.Sprite {
     const self: *PlayerEntity = @fieldParentPtr("entity", entity);
     return self.sprite;
-}
-
-pub fn get_curr_frame(entity: *Entity) []u8 {
-    const self: *PlayerEntity = @fieldParentPtr("entity", entity);
-    return self.sprite.curr_frame;
 }
 
 pub fn update(entity: *Entity, game_state: *GameState) void {
@@ -86,4 +83,19 @@ pub fn update(entity: *Entity, game_state: *GameState) void {
         self.last_projectile_shot_ms = std.time.milliTimestamp();
     }
     self.entity.collider = rect_from_entity_and_sprite(self.sprite, &self.entity);
+
+    self.entity._frames_since_step_change += 1;
+
+    if (self.entity._frames_since_step_change >= FRAMES_PER_ANIMATION_STEP) {
+        const sprite = self.entity.get_curr_sprite();
+        const lines_to_add = sprite.headers.lines_per_frame * sprite.stride_length;
+
+        if (self.entity._curr_anim_step_start + lines_to_add >= sprite.data.len) {
+            self.entity._curr_anim_step_start = 1;
+        } else {
+            self.entity._curr_anim_step_start += lines_to_add;
+        }
+
+        self.entity._frames_since_step_change = 0;
+    }
 }
