@@ -1,5 +1,6 @@
 const std = @import("std");
 const Entity = @import("entity.zig").Entity;
+const rect_from_entity_and_sprite = @import("entity.zig").rect_from_entity_and_sprite;
 const GameState = @import("helpers.zig").GameState;
 const PlayerProjectileEntity = @import("player_projectile.zig").PlayerProjectileEntity;
 const entity_manager = @import("entity_manager.zig");
@@ -10,6 +11,7 @@ const c = @cImport({
 });
 
 const SHOOT_PROJECTILE_COOLDOWN_MS = 500;
+const FRAMES_PER_ANIMATION_STEP = 15;
 
 pub const PlayerEntity = struct {
     sprite: *const rendering.sprites.Sprite,
@@ -17,17 +19,20 @@ pub const PlayerEntity = struct {
     last_projectile_shot_ms: ?i64,
 
     pub fn init(start_x: i32, start_y: i32, sprite_collection: *const rendering.sprites.SpriteCollection) PlayerEntity {
+        const sprite = &sprite_collection.player;
         const entity = Entity.init(
             update,
             get_curr_sprite,
+            FRAMES_PER_ANIMATION_STEP,
             start_x,
             start_y,
             helpers.Direction.Up,
+            null,
         );
 
         return PlayerEntity{
             .entity = entity,
-            .sprite = &sprite_collection.player,
+            .sprite = sprite,
             .last_projectile_shot_ms = null,
         };
     }
@@ -76,5 +81,21 @@ pub fn update(entity: *Entity, game_state: *GameState) void {
             std.debug.print("Failed when spawning projectile.", .{});
         };
         self.last_projectile_shot_ms = std.time.milliTimestamp();
+    }
+    self.entity.collider = rect_from_entity_and_sprite(self.sprite, &self.entity);
+
+    self.entity._frames_since_step_change += 1;
+
+    if (self.entity._frames_since_step_change >= FRAMES_PER_ANIMATION_STEP) {
+        const sprite = self.entity.get_curr_sprite();
+        const lines_to_add = sprite.headers.lines_per_frame * sprite.stride_length;
+
+        if (self.entity._curr_anim_step_start + lines_to_add >= sprite.data.len) {
+            self.entity._curr_anim_step_start = 1;
+        } else {
+            self.entity._curr_anim_step_start += lines_to_add;
+        }
+
+        self.entity._frames_since_step_change = 0;
     }
 }

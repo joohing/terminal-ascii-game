@@ -37,6 +37,10 @@ pub fn main() !void {
     try entity_manager.register_entity(player_entity);
     try entity_manager.register_entity(enemy_entity);
 
+    // if true will show collider boxes around entities.
+    // this value can be toggled while playing with "c" and "x"
+    var show_colliders = false;
+
     gameloop: while (true) {
         iter += 1;
 
@@ -56,6 +60,14 @@ pub fn main() !void {
             rendering.display.c.SDL_Quit();
             break :gameloop;
         };
+
+        if (keys_pressed[c.SDL_SCANCODE_C]) {
+            show_colliders = true;
+        }
+        if (keys_pressed[c.SDL_SCANCODE_X]) {
+            show_colliders = false;
+        }
+
         var game_state = GameState{
             .keys_pressed = keys_pressed,
             .entity_manager = &entity_manager,
@@ -63,17 +75,30 @@ pub fn main() !void {
         };
 
         try entity_manager.update(&game_state);
-        var entity_buffer: [128]*Entity = undefined;
-        for (entity_manager.get_all_entities(&entity_buffer)) |*entity| {
+        var entity_iterator = entity_manager.get_all_entities_iter();
+        while (entity_iterator.next()) |*entity_type| {
+            const entity = entity_type.*.get_inner();
             rendering.render.render(
                 entity.*.get_curr_sprite(),
+                entity.*._curr_anim_step_start,
                 entity.*.x,
                 entity.*.y,
                 entity.*.rotation,
                 helpers.constants.WINDOW_WIDTH,
                 &render_buffer,
             );
+            if (show_colliders) {
+                if (entity.*.collider) |coll| {
+                    rendering.render.renderRect(
+                        coll,
+                        '.',
+                        helpers.constants.WINDOW_WIDTH,
+                        &render_buffer,
+                    );
+                }
+            }
         }
+
         try game_display.display_buffer(&render_buffer);
     }
 }

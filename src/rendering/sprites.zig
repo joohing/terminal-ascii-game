@@ -7,6 +7,7 @@ pub const Sprite = struct {
     data: []const u8,
     stride_length: u8,
     headers: Headers,
+    curr_frame: []u8,
 };
 
 pub const SpriteCollection = struct {
@@ -23,19 +24,24 @@ const HeaderInitError = error{
     IncorrectArgumentType,
     UnexpectedRotation,
 };
+
 const SpriteLoadError = error{
     InvalidNumberOfArgs,
     EmptySprite,
     NoNewline,
 };
 
-const Headers = struct {
+pub const Headers = struct {
     rotation: helpers.Direction,
+
     center_of_rotation_x: u8,
+
     center_of_rotation_y: u8,
 
+    lines_per_frame: u8,
+
     fn init(header_str: []u8) !Headers {
-        var args: [3][]const u8 = undefined;
+        var args: [4][]const u8 = undefined;
         var arg_count: u32 = 0;
         var spliterator = std.mem.splitAny(u8, header_str, ",");
         while (spliterator.next()) |arg| {
@@ -43,7 +49,7 @@ const Headers = struct {
             arg_count += 1;
         }
 
-        if (arg_count != 3) {
+        if (arg_count != 4) {
             return HeaderInitError.InvalidNumberOfArgs;
         }
 
@@ -74,10 +80,18 @@ const Headers = struct {
             };
         };
 
+        const lines_per_frame = std.fmt.parseInt(u8, args[3], 10) catch |e| {
+            std.debug.print("Failed to load header lines_per_frame. Got {s}.", .{args[3]});
+            return switch (e) {
+                else => e,
+            };
+        };
+
         return Headers{
             .rotation = rotation,
             .center_of_rotation_x = center_of_rotation_x,
             .center_of_rotation_y = center_of_rotation_y,
+            .lines_per_frame = lines_per_frame,
         };
     }
 };
@@ -114,9 +128,9 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     std.debug.print("Size allocated: {d} x {d} = {d} for sprite: jonathan\n", .{ jonathan_stride, jonathan_newline_count, jonathan_padded_file_size });
 
     const jonathan_content_padded = try allocator.alloc(u8, @intCast(jonathan_padded_file_size));
-    std.debug.print("Padding buffer jonathan:\n{s}\n", .{jonathan_content});
     right_pad_sprite(jonathan_content_padded, jonathan_content, jonathan_stride);
-    std.debug.print("Chars after padding:\n{s}\n", .{jonathan_content_padded});
+
+    const jonathan_bytes_per_frame = jonathan_stride * jonathan_header.lines_per_frame;
 
     const player_file = try std.fs.cwd().openFile("assets/sprites/player.sprite", .{});
     const player_file_size: u64 = (try player_file.stat()).size;
@@ -149,9 +163,9 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     std.debug.print("Size allocated: {d} x {d} = {d} for sprite: player\n", .{ player_stride, player_newline_count, player_padded_file_size });
 
     const player_content_padded = try allocator.alloc(u8, @intCast(player_padded_file_size));
-    std.debug.print("Padding buffer player:\n{s}\n", .{player_content});
     right_pad_sprite(player_content_padded, player_content, player_stride);
-    std.debug.print("Chars after padding:\n{s}\n", .{player_content_padded});
+
+    const player_bytes_per_frame = player_stride * player_header.lines_per_frame;
 
     const MONSTER_1_file = try std.fs.cwd().openFile("assets/sprites/MONSTER_1.sprite", .{});
     const MONSTER_1_file_size: u64 = (try MONSTER_1_file.stat()).size;
@@ -184,9 +198,9 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     std.debug.print("Size allocated: {d} x {d} = {d} for sprite: MONSTER_1\n", .{ MONSTER_1_stride, MONSTER_1_newline_count, MONSTER_1_padded_file_size });
 
     const MONSTER_1_content_padded = try allocator.alloc(u8, @intCast(MONSTER_1_padded_file_size));
-    std.debug.print("Padding buffer MONSTER_1:\n{s}\n", .{MONSTER_1_content});
     right_pad_sprite(MONSTER_1_content_padded, MONSTER_1_content, MONSTER_1_stride);
-    std.debug.print("Chars after padding:\n{s}\n", .{MONSTER_1_content_padded});
+
+    const MONSTER_1_bytes_per_frame = MONSTER_1_stride * MONSTER_1_header.lines_per_frame;
 
     const er_file = try std.fs.cwd().openFile("assets/sprites/er.sprite", .{});
     const er_file_size: u64 = (try er_file.stat()).size;
@@ -219,9 +233,9 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     std.debug.print("Size allocated: {d} x {d} = {d} for sprite: er\n", .{ er_stride, er_newline_count, er_padded_file_size });
 
     const er_content_padded = try allocator.alloc(u8, @intCast(er_padded_file_size));
-    std.debug.print("Padding buffer er:\n{s}\n", .{er_content});
     right_pad_sprite(er_content_padded, er_content, er_stride);
-    std.debug.print("Chars after padding:\n{s}\n", .{er_content_padded});
+
+    const er_bytes_per_frame = er_stride * er_header.lines_per_frame;
 
     const dum_file = try std.fs.cwd().openFile("assets/sprites/dum.sprite", .{});
     const dum_file_size: u64 = (try dum_file.stat()).size;
@@ -254,9 +268,9 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     std.debug.print("Size allocated: {d} x {d} = {d} for sprite: dum\n", .{ dum_stride, dum_newline_count, dum_padded_file_size });
 
     const dum_content_padded = try allocator.alloc(u8, @intCast(dum_padded_file_size));
-    std.debug.print("Padding buffer dum:\n{s}\n", .{dum_content});
     right_pad_sprite(dum_content_padded, dum_content, dum_stride);
-    std.debug.print("Chars after padding:\n{s}\n", .{dum_content_padded});
+
+    const dum_bytes_per_frame = dum_stride * dum_header.lines_per_frame;
 
     const player_projectile_file = try std.fs.cwd().openFile("assets/sprites/player_projectile.sprite", .{});
     const player_projectile_file_size: u64 = (try player_projectile_file.stat()).size;
@@ -289,45 +303,51 @@ pub fn load_sprite_collection(allocator: *std.mem.Allocator) !SpriteCollection {
     std.debug.print("Size allocated: {d} x {d} = {d} for sprite: player_projectile\n", .{ player_projectile_stride, player_projectile_newline_count, player_projectile_padded_file_size });
 
     const player_projectile_content_padded = try allocator.alloc(u8, @intCast(player_projectile_padded_file_size));
-    std.debug.print("Padding buffer player_projectile:\n{s}\n", .{player_projectile_content});
     right_pad_sprite(player_projectile_content_padded, player_projectile_content, player_projectile_stride);
-    std.debug.print("Chars after padding:\n{s}\n", .{player_projectile_content_padded});
+
+    const player_projectile_bytes_per_frame = player_projectile_stride * player_projectile_header.lines_per_frame;
 
     const collection = SpriteCollection{
         .jonathan = Sprite{
             .data = jonathan_content_padded,
             .stride_length = @intCast(jonathan_stride),
             .headers = jonathan_header,
+            .curr_frame = jonathan_content_padded[0..jonathan_bytes_per_frame],
         },
 
         .player = Sprite{
             .data = player_content_padded,
             .stride_length = @intCast(player_stride),
             .headers = player_header,
+            .curr_frame = player_content_padded[0..player_bytes_per_frame],
         },
 
         .MONSTER_1 = Sprite{
             .data = MONSTER_1_content_padded,
             .stride_length = @intCast(MONSTER_1_stride),
             .headers = MONSTER_1_header,
+            .curr_frame = MONSTER_1_content_padded[0..MONSTER_1_bytes_per_frame],
         },
 
         .er = Sprite{
             .data = er_content_padded,
             .stride_length = @intCast(er_stride),
             .headers = er_header,
+            .curr_frame = er_content_padded[0..er_bytes_per_frame],
         },
 
         .dum = Sprite{
             .data = dum_content_padded,
             .stride_length = @intCast(dum_stride),
             .headers = dum_header,
+            .curr_frame = dum_content_padded[0..dum_bytes_per_frame],
         },
 
         .player_projectile = Sprite{
             .data = player_projectile_content_padded,
             .stride_length = @intCast(player_projectile_stride),
             .headers = player_projectile_header,
+            .curr_frame = player_projectile_content_padded[0..player_projectile_bytes_per_frame],
         },
     };
 
