@@ -28,7 +28,7 @@ const SpriteLoadError = error{{'{'}}
     NoNewline,
 {{'}'}};
 
-const Headers = struct {{'{'}}{% for field, field_info in sprite_headers.items() %}{{field}}: {{field_info["type"]}},
+pub const Headers = struct {{'{'}}{% for field, field_info in sprite_headers.items() %}{{field}}: {{field_info["type"]}},
     {% endfor %}
     fn init(header_str: []u8) !Headers {{'{'}}
         {% if sprite_headers.__len__() == 0 %}
